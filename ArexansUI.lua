@@ -385,18 +385,18 @@ function ArexansUI:CreateWindow(config)
     self.Destroyed = false
 
     local theme = {
-        Background = Color3.fromRGB(7, 9, 15),
-        Panel = Color3.fromRGB(12, 16, 25),
-        Panel2 = Color3.fromRGB(17, 22, 34),
-        Item = Color3.fromRGB(21, 27, 41),
-        ItemHover = Color3.fromRGB(28, 37, 56),
+        Background = Color3.fromRGB(12, 12, 12),
+        Panel = Color3.fromRGB(18, 18, 18),
+        Panel2 = Color3.fromRGB(24, 24, 24),
+        Item = Color3.fromRGB(30, 30, 30),
+        ItemHover = Color3.fromRGB(40, 40, 40),
         Text = Color3.fromRGB(245, 248, 255),
         SubText = Color3.fromRGB(150, 163, 185),
-        Accent = Color3.fromRGB(30, 145, 255),
-        Accent2 = Color3.fromRGB(77, 205, 255),
+        Accent = Color3.fromRGB(147, 51, 234), -- Strong Purple (Delta style)
+        Accent2 = Color3.fromRGB(168, 85, 247), -- Lighter Purple
         Good = Color3.fromRGB(55, 220, 145),
         Danger = Color3.fromRGB(255, 85, 105),
-        Stroke = Color3.fromRGB(48, 72, 105),
+        Stroke = Color3.fromRGB(38, 38, 38),
     }
 
     self.Theme = theme
@@ -623,7 +623,7 @@ function ArexansUI:CreateWindow(config)
         BackgroundColor3 = theme.Panel,
         BackgroundTransparency = .03,
         Position = UDim2.fromOffset(10, 10),
-        Size = UDim2.new(0, 190, 1, -20),
+        Size = UDim2.new(0, 60, 1, -20),
         ZIndex = 5,
     }, body)
     corner(sidebar, 14)
@@ -634,8 +634,8 @@ function ArexansUI:CreateWindow(config)
         BackgroundTransparency = 1,
         Position = UDim2.fromOffset(8, 12),
         Size = UDim2.new(1, -16, 1, -24),
-        ScrollBarThickness = 2,
-        ScrollBarImageTransparency = .5,
+        ScrollBarThickness = 0,
+        ScrollBarImageTransparency = 1,
         CanvasSize = UDim2.new(),
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
         ScrollingDirection = Enum.ScrollingDirection.Y,
@@ -652,8 +652,8 @@ function ArexansUI:CreateWindow(config)
         Name = "Content",
         BackgroundColor3 = theme.Panel,
         BackgroundTransparency = .03,
-        Position = UDim2.new(0, 210, 0, 10),
-        Size = UDim2.new(1, -220, 1, -20),
+        Position = UDim2.new(0, 80, 0, 10),
+        Size = UDim2.new(1, -90, 1, -20),
         ZIndex = 5,
     }, body)
     corner(content, 14)
@@ -761,7 +761,7 @@ function ArexansUI:CreateWindow(config)
         local indicator = new("Frame", {
             BackgroundColor3 = theme.Accent,
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(4, 8),
+            Position = UDim2.fromOffset(0, 8),
             Size = UDim2.fromOffset(3, 28),
             ZIndex = 8,
         }, button)
@@ -769,24 +769,12 @@ function ArexansUI:CreateWindow(config)
 
         local icon = new("ImageLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(17, 11),
+            Position = UDim2.fromOffset(11, 11),
             Size = UDim2.fromOffset(22, 22),
             ScaleType = Enum.ScaleType.Fit,
             ZIndex = 8,
         }, button)
         self:SetIcon(icon, tab.Icon)
-
-        local textLabel = new("TextLabel", {
-            BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(49, 0),
-            Size = UDim2.new(1, -58, 1, 0),
-            Font = Enum.Font.GothamSemibold,
-            Text = tab.Name,
-            TextColor3 = theme.SubText,
-            TextSize = 13,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 8,
-        }, button)
 
         local page = new("ScrollingFrame", {
             Name = tab.Name .. "_Page",
@@ -826,6 +814,118 @@ function ArexansUI:CreateWindow(config)
         end)
 
         table.insert(self.Tabs, tab)
+
+        --======================================================
+        -- Code Editor
+        --======================================================
+        function tab:AddCodeEditor(options)
+            options = options or {}
+
+            local item = new("Frame", {
+                BackgroundColor3 = theme.Item,
+                Size = UDim2.new(1, -2, 1, -74), -- leaves room for action row
+                ClipsDescendants = true,
+            }, page)
+            corner(item, 12)
+            stroke(item, theme.Stroke, .75, 1)
+
+            local box = new("TextBox", {
+                BackgroundColor3 = Color3.fromRGB(18, 18, 18), -- Slightly darker inside
+                BackgroundTransparency = 1,
+                Position = UDim2.fromOffset(12, 12),
+                Size = UDim2.new(1, -24, 1, -24),
+                Text = options.Default or "-- Welcome to Arexans Executor\n\nprint('Hello World!')",
+                PlaceholderText = options.Placeholder or "Type script here...",
+                Font = Enum.Font.Code,
+                TextSize = 13,
+                TextColor3 = theme.Text,
+                PlaceholderColor3 = theme.SubText,
+                ClearTextOnFocus = false,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                TextYAlignment = Enum.TextYAlignment.Top,
+                MultiLine = true,
+            }, item)
+
+            return {
+                Instance = item,
+                Textbox = box,
+                Set = function(_, text) box.Text = tostring(text or "") end,
+                Get = function() return box.Text end
+            }
+        end
+
+        --======================================================
+        -- Action Row
+        --======================================================
+        function tab:AddActionRow()
+            local row = new("Frame", {
+                BackgroundTransparency = 1,
+                Size = UDim2.new(1, -2, 0, 44),
+            }, page)
+
+            new("UIListLayout", {
+                FillDirection = Enum.FillDirection.Horizontal,
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Padding = UDim.new(0, 10),
+            }, row)
+
+            local api = {}
+            api.Instance = row
+
+            function api:AddButton(options)
+                options = options or {}
+
+                local btn = new("TextButton", {
+                    BackgroundColor3 = theme.Item,
+                    Size = UDim2.new(0, 100, 1, 0), -- Fixed width for row buttons, or adjust dynamically
+                    Text = "",
+                    AutoButtonColor = false,
+                }, row)
+                corner(btn, 10)
+                stroke(btn, theme.Stroke, .75, 1)
+
+                -- dynamic width
+                local textWidth = string.len(options.Name or "Btn") * 8 + 30
+                btn.Size = UDim2.new(0, math.max(100, textWidth), 1, 0)
+
+                local iconObj = new("ImageLabel", {
+                    BackgroundTransparency = 1,
+                    Position = UDim2.fromOffset(10, 11),
+                    Size = UDim2.fromOffset(22, 22),
+                    ScaleType = Enum.ScaleType.Fit,
+                }, btn)
+                ArexansUI:SetIcon(iconObj, options.Icon or "play")
+
+                new("TextLabel", {
+                    BackgroundTransparency = 1,
+                    Position = UDim2.fromOffset(38, 0),
+                    Size = UDim2.new(1, -48, 1, 0),
+                    Font = Enum.Font.GothamSemibold,
+                    Text = options.Name or "Btn",
+                    TextColor3 = theme.Text,
+                    TextSize = 13,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                }, btn)
+
+                btn.MouseEnter:Connect(function()
+                    tween(btn, .12, {BackgroundColor3 = theme.ItemHover})
+                end)
+
+                btn.MouseLeave:Connect(function()
+                    tween(btn, .12, {BackgroundColor3 = theme.Item})
+                end)
+
+                btn.MouseButton1Click:Connect(function()
+                    if type(options.Callback) == "function" then
+                        task.spawn(options.Callback)
+                    end
+                end)
+
+                return btn
+            end
+
+            return api
+        end
 
         --======================================================
         -- Section
