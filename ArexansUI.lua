@@ -111,8 +111,8 @@ end
 --==============================================================
 
 local Assets = {
-    BaseURL = "https://raw.githubusercontent.com/AREXANS/uiarexans/main/asset/",
-    APIURL = "https://api.github.com/repos/AREXANS/uiarexans/contents/asset?ref=main",
+    BaseURL = "https://raw.githubusercontent.com/AREXANS/uiarexans/feature/ui-structural-assets-7323372619121539655/asset/",
+    APIURL = "https://api.github.com/repos/AREXANS/uiarexans/contents/asset?ref=feature/ui-structural-assets-7323372619121539655",
     Folder = "ArexansUI_Assets",
     Files = {},
     Cache = {},
