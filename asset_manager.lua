@@ -134,6 +134,29 @@ ClearButton.Font = Enum.Font.GothamBold
 ClearButton.TextSize = 16
 ClearButton.Parent = Sidebar
 
+local LockButton = Instance.new("TextButton")
+LockButton.Name = "LockButton"
+LockButton.Size = UDim2.new(1, 0, 0, 40)
+LockButton.BackgroundColor3 = Color3.fromRGB(200, 160, 60)
+LockButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+LockButton.Text = "Lock UI"
+LockButton.Font = Enum.Font.GothamBold
+LockButton.TextSize = 16
+LockButton.Parent = Sidebar
+
+local SearchBox = Instance.new("TextBox")
+SearchBox.Name = "SearchBox"
+SearchBox.Size = UDim2.new(1, 0, 0, 30)
+SearchBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+SearchBox.PlaceholderText = "Search assets..."
+SearchBox.Font = Enum.Font.Gotham
+SearchBox.TextSize = 14
+SearchBox.Parent = Sidebar
+
+local IsLocked = false
+local AssetButtons = {}
+
 local DraggingElement = nil
 local DragOffset = Vector2.zero
 
@@ -144,7 +167,7 @@ local function MakeDraggable(element)
     local startPos
 
     element.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not IsLocked then
             dragging = true
             dragStart = input.Position
             startPos = element.Position
@@ -181,6 +204,62 @@ local function MakeDraggable(element)
     end)
 end
 
+local function MakeResizable(element)
+    local ResizeHandle = Instance.new("Frame")
+    ResizeHandle.Name = "ResizeHandle"
+    ResizeHandle.Size = UDim2.new(0, 15, 0, 15)
+    ResizeHandle.Position = UDim2.new(1, -15, 1, -15)
+    ResizeHandle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ResizeHandle.BackgroundTransparency = 0.5
+    ResizeHandle.ZIndex = 10
+    ResizeHandle.Parent = element
+
+    local resizing = false
+    local dragInput
+    local dragStart
+    local startSize
+
+    ResizeHandle.InputBegan:Connect(function(input)
+        if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not IsLocked then
+            resizing = true
+            dragStart = input.Position
+            startSize = element.Size
+
+            local changedConn
+            changedConn = input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    resizing = false
+                    if changedConn then changedConn:Disconnect() end
+                end
+            end)
+        end
+    end)
+
+    ResizeHandle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    local connection
+    connection = UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and resizing then
+            local delta = input.Position - dragStart
+            element.Size = UDim2.new(
+                startSize.X.Scale, startSize.X.Offset + delta.X,
+                startSize.Y.Scale, startSize.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    element.Destroying:Connect(function()
+        if connection then
+            connection:Disconnect()
+            connection = nil
+        end
+    end)
+end
+
 local function SpawnAsset(path)
     local localAsset = GetLocalAsset(path)
     if not localAsset then return end
@@ -195,6 +274,11 @@ local function SpawnAsset(path)
     img.Parent = MainFrame
 
     MakeDraggable(img)
+    MakeResizable(img)
+
+    if IsLocked and img:FindFirstChild("ResizeHandle") then
+        img.ResizeHandle.Visible = false
+    end
 end
 
 for i, path in ipairs(AssetList) do
@@ -202,7 +286,8 @@ for i, path in ipairs(AssetList) do
     btn.Size = UDim2.new(1, 0, 0, 30)
     btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
     btn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    btn.Text = path:match("([^/]+)$") or path
+    local assetName = path:match("([^/]+)$") or path
+    btn.Text = assetName
     btn.TextTruncate = Enum.TextTruncate.AtEnd
     btn.Font = Enum.Font.Gotham
     btn.TextSize = 14
@@ -211,31 +296,79 @@ for i, path in ipairs(AssetList) do
     btn.MouseButton1Click:Connect(function()
         SpawnAsset(path)
     end)
+
+    table.insert(AssetButtons, {Button = btn, Name = assetName:lower()})
 end
+
+SearchBox.GetPropertyChangedSignal("Text"):Connect(function()
+    local query = SearchBox.Text:lower()
+    for _, item in ipairs(AssetButtons) do
+        if query == "" or string.find(item.Name, query, 1, true) then
+            item.Button.Visible = true
+        else
+            item.Button.Visible = false
+        end
+    end
+end)
+
+LockButton.MouseButton1Click:Connect(function()
+    IsLocked = not IsLocked
+    if IsLocked then
+        LockButton.Text = "Unlock UI"
+        LockButton.BackgroundColor3 = Color3.fromRGB(60, 200, 60)
+        for _, child in ipairs(MainFrame:GetChildren()) do
+            if child:IsA("ImageLabel") and child:FindFirstChild("ResizeHandle") then
+                child.ResizeHandle.Visible = false
+            end
+        end
+    else
+        LockButton.Text = "Lock UI"
+        LockButton.BackgroundColor3 = Color3.fromRGB(200, 160, 60)
+        for _, child in ipairs(MainFrame:GetChildren()) do
+            if child:IsA("ImageLabel") and child:FindFirstChild("ResizeHandle") then
+                child.ResizeHandle.Visible = true
+            end
+        end
+    end
+end)
 
 Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
 ExportButton.MouseButton1Click:Connect(function()
-    local code = "local uiElements = {\n"
+    local code = "-- Auto-generated ArexansUI Layout\n"
+    code = code .. "local ScreenGui = Instance.new(\"ScreenGui\")\n"
+    code = code .. "ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild(\"PlayerGui\")\n\n"
+    code = code .. "local function GetLocalAsset(path)\n"
+    code = code .. "    local getAsset = getcustomasset or getsynasset\n"
+    code = code .. "    local localPath = \"ArexansUI_Assets/\" .. path:gsub(\"/\", \"_\")\n"
+    code = code .. "    if isfile and isfile(localPath) and getAsset then return getAsset(localPath) end\n"
+    code = code .. "    return \"rbxasset://\" .. localPath\n"
+    code = code .. "end\n\n"
+
     for _, child in ipairs(MainFrame:GetChildren()) do
         if child:IsA("ImageLabel") then
-            code = code .. string.format('    { Image = "%s", Position = UDim2.new(%.3f, %d, %.3f, %d), Size = UDim2.new(%.3f, %d, %.3f, %d) },\n',
-                child.Name,
-                child.Position.X.Scale, child.Position.X.Offset,
-                child.Position.Y.Scale, child.Position.Y.Offset,
-                child.Size.X.Scale, child.Size.X.Offset,
-                child.Size.Y.Scale, child.Size.Y.Offset
-            )
+            local varName = child.Name:match("([^/]+)$"):gsub("%.png", ""):gsub("[^%w]", "") .. "_" .. tostring(math.random(1000, 9999))
+            code = code .. string.format("local %s = Instance.new(\"ImageLabel\")\n", varName)
+            code = code .. string.format("%s.Name = \"%s\"\n", varName, child.Name:match("([^/]+)$"))
+            code = code .. string.format("%s.Image = GetLocalAsset(\"%s\")\n", varName, child.Name)
+            code = code .. string.format("%s.BackgroundTransparency = 1\n", varName)
+            code = code .. string.format("%s.Position = UDim2.new(%.3f, %d, %.3f, %d)\n", varName, child.Position.X.Scale, child.Position.X.Offset, child.Position.Y.Scale, child.Position.Y.Offset)
+            code = code .. string.format("%s.Size = UDim2.new(%.3f, %d, %.3f, %d)\n", varName, child.Size.X.Scale, child.Size.X.Offset, child.Size.Y.Scale, child.Size.Y.Offset)
+            code = code .. string.format("%s.AnchorPoint = Vector2.new(0.5, 0.5)\n", varName)
+            code = code .. string.format("%s.Parent = ScreenGui\n\n", varName)
         end
     end
-    code = code .. "}\n"
+
+    if writefile then
+        writefile("ArexansUI_ExportedLayout.lua", code)
+        print("Saved to workspace/ArexansUI_ExportedLayout.lua")
+    end
 
     if setclipboard then
         setclipboard(code)
-        print("Layout exported to clipboard!")
+        print("Layout copied to clipboard!")
     else
-        print("Exported Layout:")
-        print(code)
+        print("Exported Layout:\n" .. code)
     end
 end)
 
