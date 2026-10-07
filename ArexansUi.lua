@@ -126,7 +126,7 @@ function ArexansUi:MakeWindow(config)
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
     Sidebar.Size = UDim2.new(0, 160, 1, 0)
-    Sidebar.BackgroundTransparency = 0
+    Sidebar.BackgroundTransparency = 1
     Sidebar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     local SidebarCorner = Instance.new("UICorner")
     SidebarCorner.CornerRadius = UDim.new(0, 10)
