@@ -111,8 +111,8 @@ end
 --==============================================================
 
 local Assets = {
-    BaseURL = "https://raw.githubusercontent.com/AREXANS/uiarexans/main/asset/",
-    APIURL = "https://api.github.com/repos/AREXANS/uiarexans/contents/asset?ref=main",
+    BaseURL = "https://raw.githubusercontent.com/AREXANS/uiarexans/feature/ui-structural-assets-7323372619121539655/asset/",
+    APIURL = "https://api.github.com/repos/AREXANS/uiarexans/contents/asset?ref=feature/ui-structural-assets-7323372619121539655",
     Folder = "ArexansUI_Assets",
     Files = {},
     Cache = {},
@@ -141,38 +141,219 @@ function Assets:_register(path)
     end
 end
 
+local BuiltInManifest = {
+        "asset/button.png",
+        "asset/button_hover.png",
+        "asset/containers/badge.png",
+        "asset/containers/card.png",
+        "asset/containers/card_selected.png",
+        "asset/containers/divider.png",
+        "asset/containers/panel.png",
+        "asset/containers/panel_header.png",
+        "asset/containers/section.png",
+        "asset/containers/section_header.png",
+        "asset/containers/separator.png",
+        "asset/containers/tooltip.png",
+        "asset/controls/checkbox_hover.png",
+        "asset/controls/checkbox_off.png",
+        "asset/controls/checkbox_on.png",
+        "asset/controls/progress_bar.png",
+        "asset/controls/progress_fill.png",
+        "asset/controls/radio_hover.png",
+        "asset/controls/radio_off.png",
+        "asset/controls/radio_on.png",
+        "asset/controls/slider_active.png",
+        "asset/controls/slider_fill.png",
+        "asset/controls/slider_knob.png",
+        "asset/controls/slider_normal.png",
+        "asset/controls/slider_track.png",
+        "asset/controls/stepper_minus.png",
+        "asset/controls/stepper_plus.png",
+        "asset/dark_compact_left.png",
+        "asset/decorative/bottom_decor.png",
+        "asset/decorative/corner_decor.png",
+        "asset/decorative/energy_corner.png",
+        "asset/decorative/energy_line.png",
+        "asset/decorative/glow_dot.png",
+        "asset/decorative/glow_line.png",
+        "asset/decorative/particle_blue.png",
+        "asset/decorative/particle_gold.png",
+        "asset/decorative/side_decor.png",
+        "asset/decorative/spark_large.png",
+        "asset/decorative/spark_medium.png",
+        "asset/decorative/spark_small.png",
+        "asset/decorative/top_decor.png",
+        "asset/dropdown_after.png",
+        "asset/dropdown_before.png",
+        "asset/dropdown_selected_bg.png",
+        "asset/electric_compact_left.png",
+        "asset/frame_profile.png",
+        "asset/hue_gradient.png",
+        "asset/icons/add_circle.png",
+        "asset/icons/autowalk.png",
+        "asset/icons/battery_energy.png",
+        "asset/icons/calendar_clock.png",
+        "asset/icons/calendar_energy.png",
+        "asset/icons/camera_energy.png",
+        "asset/icons/chat_energy.png",
+        "asset/icons/checklist_energy.png",
+        "asset/icons/clean_broom.png",
+        "asset/icons/clock.png",
+        "asset/icons/cloud_energy.png",
+        "asset/icons/coin_star.png",
+        "asset/icons/cold_shield.png",
+        "asset/icons/compass.png",
+        "asset/icons/crown.png",
+        "asset/icons/database_energy.png",
+        "asset/icons/delete_energy.png",
+        "asset/icons/document_check.png",
+        "asset/icons/documents_energy.png",
+        "asset/icons/download.png",
+        "asset/icons/edit_pen.png",
+        "asset/icons/energy_shield.png",
+        "asset/icons/fast_forward.png",
+        "asset/icons/file_add.png",
+        "asset/icons/file_cancel.png",
+        "asset/icons/file_check.png",
+        "asset/icons/file_download.png",
+        "asset/icons/file_energy.png",
+        "asset/icons/file_upload.png",
+        "asset/icons/filter_sliders.png",
+        "asset/icons/fire.png",
+        "asset/icons/folder_download.png",
+        "asset/icons/folder_energy.png",
+        "asset/icons/folder_favorite.png",
+        "asset/icons/folder_minus.png",
+        "asset/icons/folder_upload.png",
+        "asset/icons/gamepad.png",
+        "asset/icons/gift.png",
+        "asset/icons/globe_ring.png",
+        "asset/icons/group_add.png",
+        "asset/icons/hand_heart.png",
+        "asset/icons/heart_energy.png",
+        "asset/icons/home_energy.png",
+        "asset/icons/leaf.png",
+        "asset/icons/lightbulb.png",
+        "asset/icons/link_broken.png",
+        "asset/icons/location_pin.png",
+        "asset/icons/lock_energy.png",
+        "asset/icons/map.png",
+        "asset/icons/map_pin.png",
+        "asset/icons/medal_star.png",
+        "asset/icons/microphone.png",
+        "asset/icons/moon_stars.png",
+        "asset/icons/mountain_flag.png",
+        "asset/icons/mute.png",
+        "asset/icons/notification_bell.png",
+        "asset/icons/pause.png",
+        "asset/icons/planet_ring.png",
+        "asset/icons/potion.png",
+        "asset/icons/refresh.png",
+        "asset/icons/remove_circle.png",
+        "asset/icons/rewind.png",
+        "asset/icons/rocket.png",
+        "asset/icons/scroll_star.png",
+        "asset/icons/search.png",
+        "asset/icons/search_glow.png",
+        "asset/icons/security_shield.png",
+        "asset/icons/send.png",
+        "asset/icons/server_global.png",
+        "asset/icons/settings.png",
+        "asset/icons/settings_energy.png",
+        "asset/icons/share.png",
+        "asset/icons/shield_star.png",
+        "asset/icons/shield_star_wings.png",
+        "asset/icons/star_energy.png",
+        "asset/icons/stop.png",
+        "asset/icons/sun.png",
+        "asset/icons/sync.png",
+        "asset/icons/target.png",
+        "asset/icons/target_add.png",
+        "asset/icons/teleport_portal.png",
+        "asset/icons/ticket_star.png",
+        "asset/icons/trophy.png",
+        "asset/icons/unlink.png",
+        "asset/icons/unlock_energy.png",
+        "asset/icons/upload.png",
+        "asset/icons/user_add.png",
+        "asset/icons/user_crown.png",
+        "asset/icons/user_group.png",
+        "asset/icons/user_shield_add.png",
+        "asset/icons/video_energy.png",
+        "asset/icons/visibility_eye.png",
+        "asset/icons/volume.png",
+        "asset/icons/warning.png",
+        "asset/icons/water_drop.png",
+        "asset/icons/wifi.png",
+        "asset/icons/wind.png",
+        "asset/loading/loading_bar.png",
+        "asset/loading/loading_ring.png",
+        "asset/loading/loading_spinner.png",
+        "asset/loading/skeleton.png",
+        "asset/loading/skeleton_box.png",
+        "asset/loading/skeleton_text.png",
+        "asset/logo.png",
+        "asset/navigation/sidebar_separator.png",
+        "asset/navigation/tab_disabled.png",
+        "asset/navigation/tab_selected.png",
+        "asset/navigation/utility_button_active_left.png",
+        "asset/navigation/utility_button_normal_blue.png",
+        "asset/navigation/utility_button_normal_left.png",
+        "asset/notification/notification_error.png",
+        "asset/notification/notification_info.png",
+        "asset/notification/notification_progress.png",
+        "asset/notification/notification_success.png",
+        "asset/notification/notification_warning.png",
+        "asset/notification/panel_container.png",
+        "asset/notification/tab_shape_01.png",
+        "asset/notification/tab_shape_02.png",
+        "asset/notification/tab_shape_03.png",
+        "asset/notification/tab_shape_04.png",
+        "asset/notification/toast_background.png",
+        "asset/off.png",
+        "asset/on.png",
+        "asset/player/avatar_away.png",
+        "asset/player/avatar_frame.png",
+        "asset/player/avatar_offline.png",
+        "asset/player/avatar_online.png",
+        "asset/player/player_card.png",
+        "asset/player/player_card_selected.png",
+        "asset/player/rank_badge.png",
+        "asset/player/server_card.png",
+        "asset/player/server_card_selected.png",
+        "asset/popup/confirm_dialog.png",
+        "asset/popup/context_menu.png",
+        "asset/popup/dialog_frame.png",
+        "asset/popup/menu_item.png",
+        "asset/popup/menu_item_hover.png",
+        "asset/popup/modal_background.png",
+        "asset/saturation_value_gradient.png",
+        "asset/scroll/scrollbar_arrow_down.png",
+        "asset/scroll/scrollbar_arrow_up.png",
+        "asset/scroll/scrollbar_thumb.png",
+        "asset/scroll/scrollbar_thumb_hover.png",
+        "asset/scroll/scrollbar_track.png",
+        "asset/search.png",
+        "asset/window/close_button.png",
+        "asset/window/collapse_button.png",
+        "asset/window/expand_button.png",
+        "asset/window/maximize_button.png",
+        "asset/window/minimize_button.png",
+        "asset/window/restore_button.png",
+        "asset/window/window_background.png",
+        "asset/window/window_frame.png",
+        "asset/window/window_humanoid.png",
+        "asset/window/window_humanoid_sleep.png"
+}
+
 function Assets:ScanGitHub()
     if self.Ready or self.Loading then return end
     self.Loading = true
 
     task.spawn(function()
-        local function scan(url, depth)
-            if depth > 5 then return end
-
-            local body = safeHttp(url)
-            if not body then return end
-
-            local ok, list = pcall(function()
-                return HttpService:JSONDecode(body)
-            end)
-            if not ok or type(list) ~= "table" then return end
-
-            for _, item in ipairs(list) do
-                if item.type == "file" then
-                    local name = tostring(item.name or "")
-                    if name:lower():match("%.png$") or
-                       name:lower():match("%.jpg$") or
-                       name:lower():match("%.jpeg$") or
-                       name:lower():match("%.webp$") then
-                        self:_register(item.path or name)
-                    end
-                elseif item.type == "dir" and item.url then
-                    scan(item.url, depth + 1)
-                end
-            end
+        for _, path in ipairs(BuiltInManifest) do
+            self:_register(path)
         end
-
-        scan(self.APIURL, 0)
         self.Ready = true
         self.Loading = false
     end)
@@ -447,6 +628,96 @@ function ArexansUI:CreateWindow(config)
     corner(root, 18)
     stroke(root, theme.Stroke, .15, 1)
 
+    -- Structural Image Elements
+    local windowBackground = new("ImageLabel", {
+        Name = "WindowBackground",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromScale(0, 0),
+        Size = UDim2.fromScale(1, 1),
+        ScaleType = Enum.ScaleType.Stretch,
+        ZIndex = 1,
+    }, root)
+    self.WindowBackground = windowBackground
+    self:SetIcon(windowBackground, "asset/window/window_frame.png")
+    corner(windowBackground, 18)
+
+    local windowFrame = new("ImageLabel", {
+        Name = "WindowFrame",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromScale(0, 0),
+        Size = UDim2.fromScale(1, 1),
+        ScaleType = Enum.ScaleType.Stretch,
+        ZIndex = 2,
+    }, root)
+    self.WindowFrame = windowFrame
+    self:SetIcon(windowFrame, "asset/window/window_frame.png")
+    corner(windowFrame, 18)
+
+    local windowDecoration = new("ImageLabel", {
+        Name = "WindowDecoration",
+        BackgroundTransparency = 1,
+        AnchorPoint = Vector2.new(0.5, 1),
+        Position = UDim2.new(0.5, 0, 0, 15),
+        Size = UDim2.fromOffset(250, 200),
+        ScaleType = Enum.ScaleType.Fit,
+        ZIndex = 10,
+    }, root)
+    self.WindowDecoration = windowDecoration
+    self:SetIcon(windowDecoration, "asset/window/window_humanoid.png")
+
+    -- Show/hide toggle button
+    local toggleUI = new("ImageButton", {
+        Name = "ToggleUI",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(20, 20),
+        Size = UDim2.fromOffset(46, 46),
+        ScaleType = Enum.ScaleType.Fit,
+        ZIndex = 50,
+        Active = true
+    }, screen)
+
+    self.ToggleUI = toggleUI
+    self:SetIcon(toggleUI, "asset/logo.png")
+
+    toggleUI.MouseButton1Click:Connect(function()
+        root.Visible = not root.Visible
+    end)
+
+    -- Drag logic for toggleUI
+    do
+        local btnDragging = false
+        local btnDragStart
+        local btnStartPos
+
+        toggleUI.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or
+               input.UserInputType == Enum.UserInputType.Touch then
+                btnDragging = true
+                btnDragStart = input.Position
+                btnStartPos = toggleUI.Position
+            end
+        end)
+
+        table.insert(self.Connections, UserInputService.InputChanged:Connect(function(input)
+            if btnDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                local delta = input.Position - btnDragStart
+                toggleUI.Position = UDim2.new(
+                    btnStartPos.X.Scale,
+                    btnStartPos.X.Offset + delta.X,
+                    btnStartPos.Y.Scale,
+                    btnStartPos.Y.Offset + delta.Y
+                )
+            end
+        end))
+
+        table.insert(self.Connections, UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or
+               input.UserInputType == Enum.UserInputType.Touch then
+                btnDragging = false
+            end
+        end))
+    end
+
     -- subtle blue border
     local border = new("Frame", {
         Name = "AccentBorder",
@@ -566,46 +837,33 @@ function ArexansUI:CreateWindow(config)
         local dragStart
         local startPos
 
-        local function begin(input)
-            if input.UserInputType ~= Enum.UserInputType.MouseButton1 and
-               input.UserInputType ~= Enum.UserInputType.Touch then
-                return
-            end
-
-            dragging = true
-            dragStart = input.Position
-            startPos = root.Position
-
-            local conn
-            conn = input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                    if conn then conn:Disconnect() end
-                end
-            end)
-        end
-
-        local function move(input)
-            if not dragging then return end
-
-            local delta = input.Position - dragStart
-            root.Position = UDim2.new(
-                startPos.X.Scale,
-                startPos.X.Offset + delta.X,
-                startPos.Y.Scale,
-                startPos.Y.Offset + delta.Y
-            )
-        end
-
-        header.InputBegan:Connect(begin)
-        header.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement or
+        header.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or
                input.UserInputType == Enum.UserInputType.Touch then
-                table.insert(self.Connections, input.Changed:Connect(function()
-                    move(input)
-                end))
+                dragging = true
+                dragStart = input.Position
+                startPos = root.Position
             end
         end)
+
+        table.insert(self.Connections, UserInputService.InputChanged:Connect(function(input)
+            if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                local delta = input.Position - dragStart
+                root.Position = UDim2.new(
+                    startPos.X.Scale,
+                    startPos.X.Offset + delta.X,
+                    startPos.Y.Scale,
+                    startPos.Y.Offset + delta.Y
+                )
+            end
+        end))
+
+        table.insert(self.Connections, UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or
+               input.UserInputType == Enum.UserInputType.Touch then
+                dragging = false
+            end
+        end))
     end
 
     -- Body
@@ -1441,6 +1699,19 @@ function ArexansUI:CreateWindow(config)
         pcall(function()
             self:SetIcon(logo, config.Logo or "logo")
             self:SetIcon(splashImage, config.HeroImage or "arexans")
+
+            if self.ToggleUI then
+                self:SetIcon(self.ToggleUI, "asset/logo.png")
+            end
+            if self.WindowBackground then
+                self:SetIcon(self.WindowBackground, "asset/window/window_frame.png")
+            end
+            if self.WindowFrame then
+                self:SetIcon(self.WindowFrame, "asset/window/window_frame.png")
+            end
+            if self.WindowDecoration then
+                self:SetIcon(self.WindowDecoration, "asset/window/window_humanoid.png")
+            end
         end)
     end)
 
