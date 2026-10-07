@@ -21,7 +21,8 @@ if success then
     if decoded and type(decoded.tree) == "table" then
         for _, item in ipairs(decoded.tree) do
             if item.path:match("^asset/") and item.path:match("%.png$") then
-                table.insert(AssetList, item.path:gsub("^asset/", ""))
+                local relativePath = item.path:gsub("^asset/", "")
+                table.insert(AssetList, relativePath)
             end
         end
     else
