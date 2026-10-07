@@ -278,14 +278,41 @@ MainFrame.Size = UDim2.new(1, 0, 1, 0)
 MainFrame.BackgroundTransparency = 1
 MainFrame.Parent = ScreenGui
 
+local SidebarContainer = Instance.new("Frame")
+SidebarContainer.Name = "SidebarContainer"
+SidebarContainer.Size = UDim2.new(0, 250, 1, 0)
+SidebarContainer.Position = UDim2.new(0, 0, 0, 0)
+SidebarContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+SidebarContainer.BorderSizePixel = 0
+SidebarContainer.Parent = ScreenGui
+
+local ControlsFrame = Instance.new("Frame")
+ControlsFrame.Name = "ControlsFrame"
+ControlsFrame.Size = UDim2.new(1, 0, 0, 170)
+ControlsFrame.Position = UDim2.new(0, 0, 0, 0)
+ControlsFrame.BackgroundTransparency = 1
+ControlsFrame.Parent = SidebarContainer
+
+local ControlsLayout = Instance.new("UIListLayout")
+ControlsLayout.Parent = ControlsFrame
+ControlsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+ControlsLayout.Padding = UDim.new(0, 5)
+
+local ControlsPadding = Instance.new("UIPadding")
+ControlsPadding.Parent = ControlsFrame
+ControlsPadding.PaddingTop = UDim.new(0, 10)
+ControlsPadding.PaddingBottom = UDim.new(0, 10)
+ControlsPadding.PaddingLeft = UDim.new(0, 10)
+ControlsPadding.PaddingRight = UDim.new(0, 10)
+
 local Sidebar = Instance.new("ScrollingFrame")
 Sidebar.Name = "Sidebar"
-Sidebar.Size = UDim2.new(0, 250, 1, 0)
-Sidebar.Position = UDim2.new(0, 0, 0, 0)
-Sidebar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Sidebar.Size = UDim2.new(1, 0, 1, -170)
+Sidebar.Position = UDim2.new(0, 0, 0, 170)
+Sidebar.BackgroundTransparency = 1
 Sidebar.BorderSizePixel = 0
 Sidebar.ScrollBarThickness = 6
-Sidebar.Parent = ScreenGui
+Sidebar.Parent = SidebarContainer
 
 local SidebarLayout = Instance.new("UIListLayout")
 SidebarLayout.Parent = Sidebar
@@ -294,7 +321,7 @@ SidebarLayout.Padding = UDim.new(0, 5)
 
 local SidebarPadding = Instance.new("UIPadding")
 SidebarPadding.Parent = Sidebar
-SidebarPadding.PaddingTop = UDim.new(0, 10)
+SidebarPadding.PaddingTop = UDim.new(0, 0)
 SidebarPadding.PaddingBottom = UDim.new(0, 10)
 SidebarPadding.PaddingLeft = UDim.new(0, 10)
 SidebarPadding.PaddingRight = UDim.new(0, 10)
@@ -307,7 +334,7 @@ ExportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ExportButton.Text = "Export Layout"
 ExportButton.Font = Enum.Font.GothamBold
 ExportButton.TextSize = 16
-ExportButton.Parent = Sidebar
+ExportButton.Parent = ControlsFrame
 
 local ClearButton = Instance.new("TextButton")
 ClearButton.Name = "ClearButton"
@@ -317,7 +344,7 @@ ClearButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ClearButton.Text = "Clear All"
 ClearButton.Font = Enum.Font.GothamBold
 ClearButton.TextSize = 16
-ClearButton.Parent = Sidebar
+ClearButton.Parent = ControlsFrame
 
 local LockButton = Instance.new("TextButton")
 LockButton.Name = "LockButton"
@@ -327,7 +354,7 @@ LockButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 LockButton.Text = "Lock UI"
 LockButton.Font = Enum.Font.GothamBold
 LockButton.TextSize = 16
-LockButton.Parent = Sidebar
+LockButton.Parent = ControlsFrame
 
 local SearchBox = Instance.new("TextBox")
 SearchBox.Name = "SearchBox"
@@ -337,7 +364,7 @@ SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 SearchBox.PlaceholderText = "Search assets..."
 SearchBox.Font = Enum.Font.Gotham
 SearchBox.TextSize = 14
-SearchBox.Parent = Sidebar
+SearchBox.Parent = ControlsFrame
 
 local IsLocked = false
 local AssetButtons = {}
@@ -494,6 +521,8 @@ SearchBox.GetPropertyChangedSignal("Text"):Connect(function()
             item.Button.Visible = false
         end
     end
+    -- Allow UIListLayout to update its AbsoluteContentSize before updating CanvasSize
+    task.defer(UpdateCanvasSize)
 end)
 
 LockButton.MouseButton1Click:Connect(function()
@@ -517,7 +546,11 @@ LockButton.MouseButton1Click:Connect(function()
     end
 end)
 
-Sidebar.AutomaticCanvasSize = Enum.AutomaticSize.Y
+local function UpdateCanvasSize()
+    Sidebar.CanvasSize = UDim2.new(0, 0, 0, SidebarLayout.AbsoluteContentSize.Y + 20)
+end
+SidebarLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(UpdateCanvasSize)
+UpdateCanvasSize()
 
 ExportButton.MouseButton1Click:Connect(function()
     local code = "-- Auto-generated ArexansUI Layout\n"
