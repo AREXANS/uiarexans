@@ -118,6 +118,76 @@ local Assets = {
     Cache = {},
     Ready = false,
     Loading = false,
+    -- Hardcoded asset list to bypass GitHub API rate limits
+    AssetList = {
+        "button.png", "button_hover.png",
+        "containers/badge.png", "containers/card.png", "containers/card_selected.png",
+        "containers/divider.png", "containers/panel.png", "containers/panel_header.png",
+        "containers/section.png", "containers/section_header.png", "containers/separator.png",
+        "containers/tooltip.png", "controls/checkbox_hover.png", "controls/checkbox_off.png",
+        "controls/checkbox_on.png", "controls/progress_bar.png", "controls/progress_fill.png",
+        "controls/radio_hover.png", "controls/radio_off.png", "controls/radio_on.png",
+        "controls/slider_active.png", "controls/slider_fill.png", "controls/slider_knob.png",
+        "controls/slider_normal.png", "controls/slider_track.png", "controls/stepper_minus.png",
+        "controls/stepper_plus.png", "dark_compact_left.png", "decorative/bottom_decor.png",
+        "decorative/corner_decor.png", "decorative/energy_corner.png", "decorative/energy_line.png",
+        "decorative/glow_dot.png", "decorative/glow_line.png", "decorative/particle_blue.png",
+        "decorative/particle_gold.png", "decorative/side_decor.png", "decorative/spark_large.png",
+        "decorative/spark_medium.png", "decorative/spark_small.png", "decorative/top_decor.png",
+        "dropdown_after.png", "dropdown_before.png", "dropdown_selected_bg.png",
+        "electric_compact_left.png", "frame_profile.png", "hue_gradient.png",
+        "icons/add_circle.png", "icons/autowalk.png", "icons/battery_energy.png",
+        "icons/calendar_clock.png", "icons/calendar_energy.png", "icons/camera_energy.png",
+        "icons/chat_energy.png", "icons/checklist_energy.png", "icons/clean_broom.png",
+        "icons/clock.png", "icons/cloud_energy.png", "icons/coin_star.png", "icons/cold_shield.png",
+        "icons/compass.png", "icons/crown.png", "icons/database_energy.png", "icons/delete_energy.png",
+        "icons/document_check.png", "icons/documents_energy.png", "icons/download.png",
+        "icons/edit_pen.png", "icons/energy_shield.png", "icons/fast_forward.png",
+        "icons/file_add.png", "icons/file_cancel.png", "icons/file_check.png",
+        "icons/file_download.png", "icons/file_energy.png", "icons/file_upload.png",
+        "icons/filter_sliders.png", "icons/fire.png", "icons/folder_download.png",
+        "icons/folder_energy.png", "icons/folder_favorite.png", "icons/folder_minus.png",
+        "icons/folder_upload.png", "icons/gamepad.png", "icons/gift.png", "icons/globe_ring.png",
+        "icons/group_add.png", "icons/hand_heart.png", "icons/heart_energy.png",
+        "icons/home_energy.png", "icons/leaf.png", "icons/lightbulb.png", "icons/link_broken.png",
+        "icons/location_pin.png", "icons/lock_energy.png", "icons/map.png", "icons/map_pin.png",
+        "icons/medal_star.png", "icons/microphone.png", "icons/moon_stars.png",
+        "icons/mountain_flag.png", "icons/mute.png", "icons/notification_bell.png",
+        "icons/pause.png", "icons/planet_ring.png", "icons/potion.png", "icons/refresh.png",
+        "icons/remove_circle.png", "icons/rewind.png", "icons/rocket.png", "icons/scroll_star.png",
+        "icons/search.png", "icons/search_glow.png", "icons/security_shield.png", "icons/send.png",
+        "icons/server_global.png", "icons/settings.png", "icons/settings_energy.png",
+        "icons/share.png", "icons/shield_star.png", "icons/shield_star_wings.png",
+        "icons/star_energy.png", "icons/stop.png", "icons/sun.png", "icons/sync.png",
+        "icons/target.png", "icons/target_add.png", "icons/teleport_portal.png",
+        "icons/ticket_star.png", "icons/trophy.png", "icons/unlink.png", "icons/unlock_energy.png",
+        "icons/upload.png", "icons/user_add.png", "icons/user_crown.png", "icons/user_group.png",
+        "icons/user_shield_add.png", "icons/video_energy.png", "icons/visibility_eye.png",
+        "icons/volume.png", "icons/warning.png", "icons/water_drop.png", "icons/wifi.png",
+        "icons/wind.png", "loading/loading_bar.png", "loading/loading_ring.png",
+        "loading/loading_spinner.png", "loading/skeleton.png", "loading/skeleton_box.png",
+        "loading/skeleton_text.png", "logo.png", "navigation/sidebar_separator.png",
+        "navigation/tab_disabled.png", "navigation/tab_selected.png",
+        "navigation/utility_button_active_left.png", "navigation/utility_button_normal_blue.png",
+        "navigation/utility_button_normal_left.png", "notification/notification_error.png",
+        "notification/notification_info.png", "notification/notification_progress.png",
+        "notification/notification_success.png", "notification/notification_warning.png",
+        "notification/panel_container.png", "notification/tab_shape_01.png",
+        "notification/tab_shape_02.png", "notification/tab_shape_03.png",
+        "notification/tab_shape_04.png", "notification/toast_background.png", "off.png", "on.png",
+        "player/avatar_away.png", "player/avatar_frame.png", "player/avatar_offline.png",
+        "player/avatar_online.png", "player/player_card.png", "player/player_card_selected.png",
+        "player/rank_badge.png", "player/server_card.png", "player/server_card_selected.png",
+        "popup/confirm_dialog.png", "popup/context_menu.png", "popup/dialog_frame.png",
+        "popup/menu_item.png", "popup/menu_item_hover.png", "popup/modal_background.png",
+        "saturation_value_gradient.png", "scroll/scrollbar_arrow_down.png",
+        "scroll/scrollbar_arrow_up.png", "scroll/scrollbar_thumb.png",
+        "scroll/scrollbar_thumb_hover.png", "scroll/scrollbar_track.png", "search.png",
+        "window/close_button.png", "window/collapse_button.png", "window/expand_button.png",
+        "window/maximize_button.png", "window/minimize_button.png", "window/restore_button.png",
+        "window/window_background.png", "window/window_frame.png", "window/window_humanoid.png",
+        "window/window_humanoid_sleep.png"
+    }
 }
 
 function Assets:_ensureFolder()
@@ -146,33 +216,11 @@ function Assets:ScanGitHub()
     self.Loading = true
 
     task.spawn(function()
-        local function scan(url, depth)
-            if depth > 5 then return end
-
-            local body = safeHttp(url)
-            if not body then return end
-
-            local ok, list = pcall(function()
-                return HttpService:JSONDecode(body)
-            end)
-            if not ok or type(list) ~= "table" then return end
-
-            for _, item in ipairs(list) do
-                if item.type == "file" then
-                    local name = tostring(item.name or "")
-                    if name:lower():match("%.png$") or
-                       name:lower():match("%.jpg$") or
-                       name:lower():match("%.jpeg$") or
-                       name:lower():match("%.webp$") then
-                        self:_register(item.path or name)
-                    end
-                elseif item.type == "dir" and item.url then
-                    scan(item.url, depth + 1)
-                end
-            end
+        -- Direct iteration bypasses API rate limits
+        for _, path in ipairs(self.AssetList) do
+            self:_register(path)
         end
 
-        scan(self.APIURL, 0)
         self.Ready = true
         self.Loading = false
     end)
@@ -433,82 +481,58 @@ function ArexansUI:CreateWindow(config)
 
     table.insert(self.Connections, workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale))
 
-    -- Main shell
-    local root = new("Frame", {
+    -- Main shell background image
+    local root = new("ImageLabel", {
         Name = "Root",
         AnchorPoint = Vector2.new(.5, .5),
-        Position = UDim2.fromScale(.5, .52),
-        Size = self.Size,
-        BackgroundColor3 = theme.Background,
-        BackgroundTransparency = .03,
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        Size = UDim2.fromOffset(512, 241),
+        BackgroundTransparency = 1,
+        ZIndex = 1,
     }, screen)
 
+    self:SetIcon(root, "window/window_background.png")
     self.Root = root
-    corner(root, 18)
-    stroke(root, theme.Stroke, .15, 1)
 
-    -- subtle blue border
-    local border = new("Frame", {
-        Name = "AccentBorder",
+    -- Window Frame (borders and header shape) overlaying the background
+    local windowFrame = new("ImageLabel", {
+        Name = "WindowFrame",
         BackgroundTransparency = 1,
-        Size = UDim2.new(1, -2, 1, -2),
-        Position = UDim2.fromOffset(1, 1),
-        ZIndex = 3,
+        Position = UDim2.fromOffset(-2, -10),
+        Size = UDim2.fromOffset(557, 299),
+        ZIndex = 10,
     }, root)
-    corner(border, 17)
-    stroke(border, theme.Accent, .82, 1)
+    self:SetIcon(windowFrame, "window/window_frame.png")
 
-    -- Header
+    -- Window Humanoid (decorative sleeping robot overlay)
+    local humanoidOverlay = new("ImageLabel", {
+        Name = "WindowHumanoid",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(-2, -144),
+        Size = UDim2.fromOffset(618, 149),
+        ZIndex = 11,
+    }, root)
+    self:SetIcon(humanoidOverlay, "window/window_humanoid.png")
+
+    -- Drag handle header area (invisible, for grabbing)
     local header = new("Frame", {
         Name = "Header",
-        Size = UDim2.new(1, 0, 0, 72),
-        BackgroundColor3 = Color3.fromRGB(9, 13, 21),
-        BackgroundTransparency = .08,
-        ZIndex = 5,
-    }, root)
-    corner(header, 18)
-
-    local headerMask = new("Frame", {
-        BackgroundColor3 = Color3.fromRGB(9, 13, 21),
-        BorderSizePixel = 0,
-        Position = UDim2.fromOffset(0, 35),
-        Size = UDim2.new(1, 0, 0, 37),
-        ZIndex = 5,
-    }, header)
-
-    local logo = new("ImageLabel", {
-        Name = "Logo",
+        Size = UDim2.new(1, 0, 0, 50),
         BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(20, 13),
-        Size = UDim2.fromOffset(46, 46),
-        ScaleType = Enum.ScaleType.Fit,
-        ZIndex = 7,
-    }, header)
+        ZIndex = 12,
+    }, root)
 
-    self:SetIcon(logo, config.Logo or "logo")
-
+    -- Custom title text placed precisely
     local title = new("TextLabel", {
         BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(78, 10),
+        Position = UDim2.fromOffset(30, 8),
         Size = UDim2.new(0, 300, 0, 28),
         Font = Enum.Font.GothamBold,
         Text = self.Name,
         TextColor3 = theme.Text,
-        TextSize = 20,
+        TextSize = 18,
         TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 7,
-    }, header)
-
-    local subtitle = new("TextLabel", {
-        BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(79, 36),
-        Size = UDim2.new(0, 350, 0, 18),
-        Font = Enum.Font.Gotham,
-        Text = self.Subtitle,
-        TextColor3 = theme.SubText,
-        TextSize = 11,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 7,
+        ZIndex = 13,
     }, header)
 
     -- Header buttons
@@ -608,109 +632,45 @@ function ArexansUI:CreateWindow(config)
         end)
     end
 
-    -- Body
+    -- Body container overlaid precisely inside the background texture bounds
     local body = new("Frame", {
         Name = "Body",
         BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(0, 72),
-        Size = UDim2.new(1, 0, 1, -72),
-        ZIndex = 4,
+        Position = UDim2.fromOffset(25, 45),
+        Size = UDim2.new(1, -50, 1, -55),
+        ZIndex = 2,
     }, root)
 
-    -- Sidebar
-    local sidebar = new("Frame", {
-        Name = "Sidebar",
-        BackgroundColor3 = theme.Panel,
-        BackgroundTransparency = .03,
-        Position = UDim2.fromOffset(10, 10),
-        Size = UDim2.new(0, 190, 1, -20),
-        ZIndex = 5,
-    }, body)
-    corner(sidebar, 14)
-    stroke(sidebar, theme.Stroke, .55, 1)
-
+    -- Sidebar for Tabs (invisible layout wrapper)
     local tabScroll = new("ScrollingFrame", {
         Name = "Tabs",
         BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(8, 12),
-        Size = UDim2.new(1, -16, 1, -24),
-        ScrollBarThickness = 2,
-        ScrollBarImageTransparency = .5,
+        Position = UDim2.fromOffset(0, 0),
+        Size = UDim2.new(0, 126, 1, 0),
+        ScrollBarThickness = 0,
         CanvasSize = UDim2.new(),
         AutomaticCanvasSize = Enum.AutomaticSize.Y,
         ScrollingDirection = Enum.ScrollingDirection.Y,
-        ZIndex = 6,
-    }, sidebar)
+        ZIndex = 3,
+    }, body)
 
     new("UIListLayout", {
-        Padding = UDim.new(0, 7),
+        Padding = UDim.new(0, 10),
         SortOrder = Enum.SortOrder.LayoutOrder,
     }, tabScroll)
 
-    -- Content
+    -- Content for pages
     local content = new("Frame", {
         Name = "Content",
-        BackgroundColor3 = theme.Panel,
-        BackgroundTransparency = .03,
-        Position = UDim2.new(0, 210, 0, 10),
-        Size = UDim2.new(1, -220, 1, -20),
-        ZIndex = 5,
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 140, 0, 0),
+        Size = UDim2.new(1, -140, 1, 0),
+        ZIndex = 2,
     }, body)
-    corner(content, 14)
-    stroke(content, theme.Stroke, .55, 1)
 
     self.Content = content
     self.TabScroll = tabScroll
-
-    local pages = new("Frame", {
-        BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(10, 10),
-        Size = UDim2.new(1, -20, 1, -20),
-    }, content)
-
-    self.Pages = pages
-
-    -- Welcome splash
-    local splash = new("Frame", {
-        BackgroundTransparency = 1,
-        Size = UDim2.fromScale(1, 1),
-        Visible = true,
-    }, pages)
-
-    local splashImage = new("ImageLabel", {
-        BackgroundTransparency = 1,
-        AnchorPoint = Vector2.new(.5, .5),
-        Position = UDim2.fromScale(.5, .40),
-        Size = UDim2.fromOffset(280, 160),
-        ScaleType = Enum.ScaleType.Fit,
-    }, splash)
-
-    self:SetIcon(splashImage, config.HeroImage or "arexans")
-
-    local splashTitle = new("TextLabel", {
-        BackgroundTransparency = 1,
-        AnchorPoint = Vector2.new(.5, .5),
-        Position = UDim2.fromScale(.5, .68),
-        Size = UDim2.new(1, -30, 0, 38),
-        Font = Enum.Font.GothamBold,
-        Text = "AREXANS",
-        TextColor3 = theme.Text,
-        TextSize = 28,
-    }, splash)
-
-    local splashSub = new("TextLabel", {
-        BackgroundTransparency = 1,
-        AnchorPoint = Vector2.new(.5, .5),
-        Position = UDim2.fromScale(.5, .76),
-        Size = UDim2.new(1, -60, 0, 40),
-        Font = Enum.Font.Gotham,
-        Text = "Pilih menu di sebelah kiri untuk mulai.",
-        TextColor3 = theme.SubText,
-        TextSize = 13,
-        TextWrapped = true,
-    }, splash)
-
-    self.Splash = splash
+    self.Pages = content
 
     --==========================================================
     -- METHODS
@@ -720,22 +680,16 @@ function ArexansUI:CreateWindow(config)
         for _, t in pairs(self.Tabs) do
             local selected = t == tab
 
-            tween(t.Button, .16, {
-                BackgroundColor3 = selected and theme.ItemHover or theme.Panel,
-                TextColor3 = selected and theme.Text or theme.SubText
-            })
-
-            if t.Indicator then
-                tween(t.Indicator, .16, {
-                    BackgroundTransparency = selected and 0 or 1
-                })
+            if selected then
+                self:SetIcon(t.Button, "navigation/tab_selected.png")
+            else
+                self:SetIcon(t.Button, "navigation/tab_disabled.png")
             end
 
             t.Page.Visible = selected
         end
 
         self.ActiveTab = tab
-        self.Splash.Visible = false
     end
 
     function self:AddTab(tabConfig)
@@ -747,29 +701,18 @@ function ArexansUI:CreateWindow(config)
             Components = {},
         }
 
-        local button = new("TextButton", {
+        local button = new("ImageButton", {
             Name = tab.Name,
-            BackgroundColor3 = theme.Panel,
-            BackgroundTransparency = 0,
-            Size = UDim2.new(1, 0, 0, 44),
-            Text = "",
+            BackgroundTransparency = 1,
+            Size = UDim2.fromOffset(126, 42),
             AutoButtonColor = false,
             ZIndex = 7,
         }, tabScroll)
-        corner(button, 11)
-
-        local indicator = new("Frame", {
-            BackgroundColor3 = theme.Accent,
-            BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(4, 8),
-            Size = UDim2.fromOffset(3, 28),
-            ZIndex = 8,
-        }, button)
-        corner(indicator, 2)
+        self:SetIcon(button, "navigation/tab_disabled.png")
 
         local icon = new("ImageLabel", {
             BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(17, 11),
+            Position = UDim2.fromOffset(17, 10),
             Size = UDim2.fromOffset(22, 22),
             ScaleType = Enum.ScaleType.Fit,
             ZIndex = 8,
@@ -806,20 +749,7 @@ function ArexansUI:CreateWindow(config)
 
         tab.Button = button
         tab.Page = page
-        tab.Indicator = indicator
         tab.IconObject = icon
-
-        button.MouseEnter:Connect(function()
-            if self.ActiveTab ~= tab then
-                tween(button, .12, {BackgroundColor3 = theme.Item})
-            end
-        end)
-
-        button.MouseLeave:Connect(function()
-            if self.ActiveTab ~= tab then
-                tween(button, .12, {BackgroundColor3 = theme.Panel})
-            end
-        end)
 
         button.MouseButton1Click:Connect(function()
             self:SelectTab(tab)
@@ -930,12 +860,11 @@ function ArexansUI:CreateWindow(config)
 
             local state = options.Default == true
 
-            local item = new("Frame", {
-                BackgroundColor3 = theme.Item,
-                Size = UDim2.new(1, -2, 0, 58),
+            local item = new("ImageLabel", {
+                BackgroundTransparency = 1,
+                Size = UDim2.fromOffset(342, 50),
             }, page)
-            corner(item, 12)
-            stroke(item, theme.Stroke, .75, 1)
+            self:SetIcon(item, state and "electric_compact_left.png" or "dark_compact_left.png")
 
             new("TextLabel", {
                 BackgroundTransparency = 1,
@@ -961,37 +890,24 @@ function ArexansUI:CreateWindow(config)
                 }, item)
             end
 
-            local toggle = new("TextButton", {
-                BackgroundColor3 = state and theme.Accent or Color3.fromRGB(42, 48, 61),
-                Position = UDim2.new(1, -61, .5, -12),
-                Size = UDim2.fromOffset(46, 24),
-                Text = "",
-                AutoButtonColor = false,
+            local toggleBtn = new("ImageButton", {
+                BackgroundTransparency = 1,
+                Position = UDim2.new(1, -61, 0.5, -12),
+                Size = UDim2.fromOffset(44, 23),
             }, item)
-            corner(toggle, 12)
-
-            local knob = new("Frame", {
-                BackgroundColor3 = Color3.fromRGB(245, 248, 255),
-                Position = state and UDim2.new(1, -22, .5, -8) or UDim2.new(0, 6, .5, -8),
-                Size = UDim2.fromOffset(16, 16),
-            }, toggle)
-            corner(knob, 8)
+            self:SetIcon(toggleBtn, state and "on.png" or "off.png")
 
             local function setState(value, fire)
                 state = value == true
-                tween(toggle, .16, {
-                    BackgroundColor3 = state and theme.Accent or Color3.fromRGB(42, 48, 61)
-                })
-                tween(knob, .16, {
-                    Position = state and UDim2.new(1, -22, .5, -8) or UDim2.new(0, 6, .5, -8)
-                })
+                self:SetIcon(toggleBtn, state and "on.png" or "off.png")
+                self:SetIcon(item, state and "electric_compact_left.png" or "dark_compact_left.png")
 
                 if fire and type(options.Callback) == "function" then
                     task.spawn(options.Callback, state)
                 end
             end
 
-            toggle.MouseButton1Click:Connect(function()
+            toggleBtn.MouseButton1Click:Connect(function()
                 setState(not state, true)
             end)
 
