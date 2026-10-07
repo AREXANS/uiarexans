@@ -11,27 +11,6 @@ local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 
 -- Fetch assets dynamically
-local AssetList = {}
-local success, result = pcall(function()
-    return game:HttpGet("https://api.github.com/repos/AREXANS/uiarexans/git/trees/main?recursive=1")
-end)
-
-if success then
-    local decoded = HttpService:JSONDecode(result)
-    if decoded and type(decoded.tree) == "table" then
-        for _, item in ipairs(decoded.tree) do
-            if item.path:match("^asset/") and item.path:match("%.png$") then
-                local relativePath = item.path:gsub("^asset/", "")
-                table.insert(AssetList, relativePath)
-            end
-        end
-    else
-        warn("Failed to parse asset tree from GitHub. Rate limited?")
-    end
-else
-    warn("Failed to fetch asset tree from github.")
-end
-
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
@@ -40,9 +19,57 @@ local getHiddenGui = gethui or get_hidden_gui
 
 local BaseURL = "https://raw.githubusercontent.com/AREXANS/uiarexans/main/asset/"
 local FolderName = "ArexansUI_Assets"
+local CacheFile = FolderName .. "/AssetTreeCache.json"
 
 if not isfolder(FolderName) then
     makefolder(FolderName)
+end
+
+-- Fetch assets dynamically with caching to bypass GitHub rate limits
+local AssetList = {}
+local success, result = pcall(function()
+    return game:HttpGet("https://api.github.com/repos/AREXANS/uiarexans/git/trees/main?recursive=1")
+end)
+
+local decoded = nil
+local rateLimited = false
+
+if success then
+    local s, d = pcall(function() return HttpService:JSONDecode(result) end)
+    if s and d then
+        if d.message and d.message:match("rate limit") then
+            rateLimited = true
+        else
+            decoded = d
+            -- Cache the valid response
+            if writefile then
+                pcall(function() writefile(CacheFile, HttpService:JSONEncode(decoded)) end)
+            end
+        end
+    end
+end
+
+if not decoded or rateLimited then
+    -- Fallback to local cache if rate limited or request failed
+    if isfile and isfile(CacheFile) then
+        local cacheContent = readfile(CacheFile)
+        local s, d = pcall(function() return HttpService:JSONDecode(cacheContent) end)
+        if s and d then
+            decoded = d
+            warn("GitHub API rate limited or unavailable. Using cached asset tree.")
+        end
+    else
+        warn("Failed to fetch asset tree and no local cache found.")
+    end
+end
+
+if decoded and type(decoded.tree) == "table" then
+    for _, item in ipairs(decoded.tree) do
+        if item.path:match("^asset/") and item.path:match("%.png$") then
+            local relativePath = item.path:gsub("^asset/", "")
+            table.insert(AssetList, relativePath)
+        end
+    end
 end
 
 local function GetLocalAsset(path)
