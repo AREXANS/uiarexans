@@ -3,14 +3,34 @@ local ArexansUi = {}
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
 
 local function getAsset(path)
-    -- In standard Roblox exploits, getcustomasset is often used to map local files.
-    -- For demonstration/testing, we assume it's available or fallback to a standard rbxasset string.
-    if getcustomasset then
-        return getcustomasset(path)
+    -- Fallback for standard Roblox Studio
+    if not isfile or not writefile or not getcustomasset or not makefolder then
+        return "rbxasset://" .. path
     end
-    return "rbxasset://" .. path
+
+    local folderPath = "ArexansUI_Assets"
+    if not isfolder(folderPath) then
+        makefolder(folderPath)
+    end
+
+    local fileName = folderPath .. "/" .. path:gsub("/", "_")
+
+    if not isfile(fileName) then
+        local success, result = pcall(function()
+            return game:HttpGet("https://raw.githubusercontent.com/AREXANS/uiarexans/main/" .. path)
+        end)
+        if success and result then
+            writefile(fileName, result)
+        else
+            return "rbxasset://" .. path
+        end
+    end
+
+    local customAsset = getcustomasset(fileName)
+    return customAsset or ""
 end
 
 function ArexansUi:MakeWindow(config)
@@ -21,11 +41,11 @@ function ArexansUi:MakeWindow(config)
     ScreenGui.Name = "ArexansHub"
     ScreenGui.Parent = CoreGui
 
-    -- Main background (using asset/window/window_frame+background.png)
+    -- Main background
     local MainFrame = Instance.new("ImageLabel")
     MainFrame.Name = "MainFrame"
-    MainFrame.Size = UDim2.new(0, 600, 0, 400)
-    MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    MainFrame.Size = UDim2.new(0, 650, 0, 450)
+    MainFrame.Position = UDim2.new(0.5, -325, 0.5, -225)
     MainFrame.BackgroundTransparency = 1
     MainFrame.Image = getAsset("asset/window/window_frame+background.png")
     MainFrame.Parent = ScreenGui
@@ -59,7 +79,7 @@ function ArexansUi:MakeWindow(config)
     -- Sidebar for tabs
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
-    Sidebar.Size = UDim2.new(0, 150, 1, 0)
+    Sidebar.Size = UDim2.new(0, 160, 1, 0)
     Sidebar.BackgroundTransparency = 1
     Sidebar.Parent = MainFrame
 
@@ -69,7 +89,7 @@ function ArexansUi:MakeWindow(config)
     SidebarLayout.Padding = UDim.new(0, 5)
 
     local SidebarPadding = Instance.new("UIPadding")
-    SidebarPadding.PaddingTop = UDim.new(0, 40)
+    SidebarPadding.PaddingTop = UDim.new(0, 45)
     SidebarPadding.PaddingLeft = UDim.new(0, 10)
     SidebarPadding.PaddingRight = UDim.new(0, 10)
     SidebarPadding.Parent = Sidebar
@@ -77,15 +97,88 @@ function ArexansUi:MakeWindow(config)
     -- Container for tab contents
     local ContentContainer = Instance.new("Frame")
     ContentContainer.Name = "ContentContainer"
-    ContentContainer.Size = UDim2.new(1, -160, 1, -40)
-    ContentContainer.Position = UDim2.new(0, 160, 0, 40)
+    ContentContainer.Size = UDim2.new(1, -170, 1, -50)
+    ContentContainer.Position = UDim2.new(0, 170, 0, 45)
     ContentContainer.BackgroundTransparency = 1
     ContentContainer.Parent = MainFrame
+
+    -- Toast Notification Container
+    local ToastContainer = Instance.new("Frame")
+    ToastContainer.Name = "ToastContainer"
+    ToastContainer.Size = UDim2.new(0, 250, 1, 0)
+    ToastContainer.Position = UDim2.new(1, -260, 0, 0)
+    ToastContainer.BackgroundTransparency = 1
+    ToastContainer.Parent = ScreenGui
+    ToastContainer.ZIndex = 100
+
+    local ToastLayout = Instance.new("UIListLayout")
+    ToastLayout.Parent = ToastContainer
+    ToastLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    ToastLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+    ToastLayout.Padding = UDim.new(0, 10)
+
+    local ToastPadding = Instance.new("UIPadding")
+    ToastPadding.PaddingBottom = UDim.new(0, 20)
+    ToastPadding.Parent = ToastContainer
 
     local WindowAPI = {
         Tabs = {},
         CurrentTab = nil
     }
+
+    function WindowAPI:Notify(notifConfig)
+        notifConfig = notifConfig or {}
+        local title = notifConfig.Title or "Notification"
+        local content = notifConfig.Content or ""
+        local duration = notifConfig.Duration or 3
+        local typeIcon = notifConfig.Type or "asset/notification/notification_info.png"
+
+        local ToastFrame = Instance.new("ImageLabel")
+        ToastFrame.Size = UDim2.new(1, 0, 0, 60)
+        ToastFrame.BackgroundTransparency = 1
+        ToastFrame.Image = getAsset("asset/notification/toast_background.png")
+        ToastFrame.Parent = ToastContainer
+
+        local Icon = Instance.new("ImageLabel")
+        Icon.Size = UDim2.new(0, 24, 0, 24)
+        Icon.Position = UDim2.new(0, 10, 0.5, -12)
+        Icon.BackgroundTransparency = 1
+        Icon.Image = getAsset(typeIcon)
+        Icon.Parent = ToastFrame
+
+        local TitleLabel = Instance.new("TextLabel")
+        TitleLabel.Size = UDim2.new(1, -45, 0, 20)
+        TitleLabel.Position = UDim2.new(0, 40, 0, 10)
+        TitleLabel.BackgroundTransparency = 1
+        TitleLabel.Text = title
+        TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TitleLabel.Font = Enum.Font.GothamBold
+        TitleLabel.TextSize = 14
+        TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        TitleLabel.Parent = ToastFrame
+
+        local ContentLabel = Instance.new("TextLabel")
+        ContentLabel.Size = UDim2.new(1, -45, 0, 20)
+        ContentLabel.Position = UDim2.new(0, 40, 0, 30)
+        ContentLabel.BackgroundTransparency = 1
+        ContentLabel.Text = content
+        ContentLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+        ContentLabel.Font = Enum.Font.Gotham
+        ContentLabel.TextSize = 12
+        ContentLabel.TextXAlignment = Enum.TextXAlignment.Left
+        ContentLabel.Parent = ToastFrame
+
+        task.spawn(function()
+            task.wait(duration)
+            local fadeOut = TweenService:Create(ToastFrame, TweenInfo.new(0.5), {ImageTransparency = 1})
+            fadeOut:Play()
+            TweenService:Create(Icon, TweenInfo.new(0.5), {ImageTransparency = 1}):Play()
+            TweenService:Create(TitleLabel, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+            TweenService:Create(ContentLabel, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+            fadeOut.Completed:Wait()
+            ToastFrame:Destroy()
+        end)
+    end
 
     function WindowAPI:MakeTab(tabConfig)
         tabConfig = tabConfig or {}
@@ -94,24 +187,24 @@ function ArexansUi:MakeWindow(config)
 
         local TabButton = Instance.new("ImageButton")
         TabButton.Name = tabName .. "Tab"
-        TabButton.Size = UDim2.new(1, 0, 0, 30)
+        TabButton.Size = UDim2.new(1, 0, 0, 32)
         TabButton.BackgroundTransparency = 1
         TabButton.Image = getAsset("asset/navigation/sidebar_item_normal.png")
         TabButton.Parent = Sidebar
 
         local TabIcon = Instance.new("ImageLabel")
         TabIcon.Size = UDim2.new(0, 20, 0, 20)
-        TabIcon.Position = UDim2.new(0, 5, 0.5, -10)
+        TabIcon.Position = UDim2.new(0, 10, 0.5, -10)
         TabIcon.BackgroundTransparency = 1
         TabIcon.Image = getAsset(tabIcon)
         TabIcon.Parent = TabButton
 
         local TabLabel = Instance.new("TextLabel")
-        TabLabel.Size = UDim2.new(1, -35, 1, 0)
-        TabLabel.Position = UDim2.new(0, 30, 0, 0)
+        TabLabel.Size = UDim2.new(1, -40, 1, 0)
+        TabLabel.Position = UDim2.new(0, 40, 0, 0)
         TabLabel.BackgroundTransparency = 1
         TabLabel.Text = tabName
-        TabLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TabLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
         TabLabel.TextXAlignment = Enum.TextXAlignment.Left
         TabLabel.Font = Enum.Font.Gotham
         TabLabel.TextSize = 14
@@ -123,6 +216,7 @@ function ArexansUi:MakeWindow(config)
         TabContent.BackgroundTransparency = 1
         TabContent.ScrollBarThickness = 4
         TabContent.Visible = false
+        TabContent.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 100)
         TabContent.Parent = ContentContainer
 
         local ContentLayout = Instance.new("UIListLayout")
@@ -130,13 +224,26 @@ function ArexansUi:MakeWindow(config)
         ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
         ContentLayout.Padding = UDim.new(0, 10)
 
+        ContentLayout.GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
+        end)
+
+        local ContentPadding = Instance.new("UIPadding")
+        ContentPadding.PaddingTop = UDim.new(0, 5)
+        ContentPadding.PaddingBottom = UDim.new(0, 5)
+        ContentPadding.PaddingLeft = UDim.new(0, 5)
+        ContentPadding.PaddingRight = UDim.new(0, 5)
+        ContentPadding.Parent = TabContent
+
         TabButton.MouseButton1Click:Connect(function()
             for _, t in pairs(WindowAPI.Tabs) do
                 t.Content.Visible = false
                 t.Button.Image = getAsset("asset/navigation/sidebar_item_normal.png")
+                t.Label.TextColor3 = Color3.fromRGB(200, 200, 200)
             end
             TabContent.Visible = true
             TabButton.Image = getAsset("asset/navigation/sidebar_item_selected.png")
+            TabLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
         end)
 
         local TabAPI = {}
@@ -148,7 +255,7 @@ function ArexansUi:MakeWindow(config)
 
             local ButtonFrame = Instance.new("ImageButton")
             ButtonFrame.Name = "Button_" .. btnName
-            ButtonFrame.Size = UDim2.new(1, -10, 0, 35)
+            ButtonFrame.Size = UDim2.new(1, 0, 0, 38)
             ButtonFrame.BackgroundTransparency = 1
             ButtonFrame.Image = getAsset("asset/button.png")
             ButtonFrame.Parent = TabContent
@@ -180,7 +287,7 @@ function ArexansUi:MakeWindow(config)
 
             local ToggleFrame = Instance.new("Frame")
             ToggleFrame.Name = "Toggle_" .. togName
-            ToggleFrame.Size = UDim2.new(1, -10, 0, 35)
+            ToggleFrame.Size = UDim2.new(1, 0, 0, 38)
             ToggleFrame.BackgroundTransparency = 1
             ToggleFrame.Parent = TabContent
 
@@ -195,8 +302,8 @@ function ArexansUi:MakeWindow(config)
             TogLabel.Parent = ToggleFrame
 
             local TogButton = Instance.new("ImageButton")
-            TogButton.Size = UDim2.new(0, 40, 0, 20)
-            TogButton.Position = UDim2.new(1, -45, 0.5, -10)
+            TogButton.Size = UDim2.new(0, 44, 0, 22)
+            TogButton.Position = UDim2.new(1, -44, 0.5, -11)
             TogButton.BackgroundTransparency = 1
             TogButton.Image = state and getAsset("asset/on.png") or getAsset("asset/off.png")
             TogButton.Parent = ToggleFrame
@@ -218,12 +325,12 @@ function ArexansUi:MakeWindow(config)
 
             local SliderFrame = Instance.new("Frame")
             SliderFrame.Name = "Slider_" .. slName
-            SliderFrame.Size = UDim2.new(1, -10, 0, 45)
+            SliderFrame.Size = UDim2.new(1, 0, 0, 50)
             SliderFrame.BackgroundTransparency = 1
             SliderFrame.Parent = TabContent
 
             local SlLabel = Instance.new("TextLabel")
-            SlLabel.Size = UDim2.new(1, 0, 0, 20)
+            SlLabel.Size = UDim2.new(1, -40, 0, 20)
             SlLabel.BackgroundTransparency = 1
             SlLabel.Text = slName
             SlLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -231,6 +338,17 @@ function ArexansUi:MakeWindow(config)
             SlLabel.TextXAlignment = Enum.TextXAlignment.Left
             SlLabel.TextSize = 14
             SlLabel.Parent = SliderFrame
+
+            local ValueLabel = Instance.new("TextLabel")
+            ValueLabel.Size = UDim2.new(0, 40, 0, 20)
+            ValueLabel.Position = UDim2.new(1, -40, 0, 0)
+            ValueLabel.BackgroundTransparency = 1
+            ValueLabel.Text = tostring(default)
+            ValueLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+            ValueLabel.Font = Enum.Font.Gotham
+            ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+            ValueLabel.TextSize = 12
+            ValueLabel.Parent = SliderFrame
 
             local Track = Instance.new("ImageLabel")
             Track.Size = UDim2.new(1, 0, 0, 10)
@@ -251,17 +369,6 @@ function ArexansUi:MakeWindow(config)
             Knob.BackgroundTransparency = 1
             Knob.Image = getAsset("asset/controls/slider_knob.png")
             Knob.Parent = Track
-
-            local ValueLabel = Instance.new("TextLabel")
-            ValueLabel.Size = UDim2.new(0, 30, 0, 20)
-            ValueLabel.Position = UDim2.new(1, -30, 0, 0)
-            ValueLabel.BackgroundTransparency = 1
-            ValueLabel.Text = tostring(default)
-            ValueLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-            ValueLabel.Font = Enum.Font.Gotham
-            ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
-            ValueLabel.TextSize = 12
-            ValueLabel.Parent = SliderFrame
 
             local dragging = false
             Knob.InputBegan:Connect(function(input)
@@ -293,10 +400,50 @@ function ArexansUi:MakeWindow(config)
             end)
         end
 
-        table.insert(WindowAPI.Tabs, {Button = TabButton, Content = TabContent})
+        function TabAPI:AddCheckbox(chkConfig)
+            chkConfig = chkConfig or {}
+            local chkName = chkConfig.Name or "Checkbox"
+            local default = chkConfig.Default or false
+            local callback = chkConfig.Callback or function() end
+
+            local state = default
+
+            local CheckFrame = Instance.new("Frame")
+            CheckFrame.Name = "Checkbox_" .. chkName
+            CheckFrame.Size = UDim2.new(1, 0, 0, 38)
+            CheckFrame.BackgroundTransparency = 1
+            CheckFrame.Parent = TabContent
+
+            local ChkLabel = Instance.new("TextLabel")
+            ChkLabel.Size = UDim2.new(1, -30, 1, 0)
+            ChkLabel.Position = UDim2.new(0, 30, 0, 0)
+            ChkLabel.BackgroundTransparency = 1
+            ChkLabel.Text = chkName
+            ChkLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            ChkLabel.Font = Enum.Font.Gotham
+            ChkLabel.TextXAlignment = Enum.TextXAlignment.Left
+            ChkLabel.TextSize = 14
+            ChkLabel.Parent = CheckFrame
+
+            local ChkButton = Instance.new("ImageButton")
+            ChkButton.Size = UDim2.new(0, 20, 0, 20)
+            ChkButton.Position = UDim2.new(0, 0, 0.5, -10)
+            ChkButton.BackgroundTransparency = 1
+            ChkButton.Image = state and getAsset("asset/controls/checkbox_on.png") or getAsset("asset/controls/checkbox_off.png")
+            ChkButton.Parent = CheckFrame
+
+            ChkButton.MouseButton1Click:Connect(function()
+                state = not state
+                ChkButton.Image = state and getAsset("asset/controls/checkbox_on.png") or getAsset("asset/controls/checkbox_off.png")
+                callback(state)
+            end)
+        end
+
+        table.insert(WindowAPI.Tabs, {Button = TabButton, Content = TabContent, Label = TabLabel})
         if #WindowAPI.Tabs == 1 then
             TabContent.Visible = true
             TabButton.Image = getAsset("asset/navigation/sidebar_item_selected.png")
+            TabLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
         end
 
         return TabAPI
