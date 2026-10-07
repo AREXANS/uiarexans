@@ -19,58 +19,216 @@ local getHiddenGui = gethui or get_hidden_gui
 
 local BaseURL = "https://raw.githubusercontent.com/AREXANS/uiarexans/main/asset/"
 local FolderName = "ArexansUI_Assets"
-local CacheFile = FolderName .. "/AssetTreeCache.json"
 
 if not isfolder(FolderName) then
     makefolder(FolderName)
 end
 
--- Fetch assets dynamically with caching to bypass GitHub rate limits
-local AssetList = {}
-local success, result = pcall(function()
-    return game:HttpGet("https://api.github.com/repos/AREXANS/uiarexans/git/trees/main?recursive=1")
-end)
-
-local decoded = nil
-local rateLimited = false
-
-if success then
-    local s, d = pcall(function() return HttpService:JSONDecode(result) end)
-    if s and d then
-        if d.message and d.message:match("rate limit") then
-            rateLimited = true
-        else
-            decoded = d
-            -- Cache the valid response
-            if writefile then
-                pcall(function() writefile(CacheFile, HttpService:JSONEncode(decoded)) end)
-            end
-        end
-    end
-end
-
-if not decoded or rateLimited then
-    -- Fallback to local cache if rate limited or request failed
-    if isfile and isfile(CacheFile) then
-        local cacheContent = readfile(CacheFile)
-        local s, d = pcall(function() return HttpService:JSONDecode(cacheContent) end)
-        if s and d then
-            decoded = d
-            warn("GitHub API rate limited or unavailable. Using cached asset tree.")
-        end
-    else
-        warn("Failed to fetch asset tree and no local cache found.")
-    end
-end
-
-if decoded and type(decoded.tree) == "table" then
-    for _, item in ipairs(decoded.tree) do
-        if item.path:match("^asset/") and item.path:match("%.png$") then
-            local relativePath = item.path:gsub("^asset/", "")
-            table.insert(AssetList, relativePath)
-        end
-    end
-end
+-- Hardcoded asset list to bypass GitHub API rate limits
+local AssetList = {
+    "button.png",
+    "button_hover.png",
+    "containers/badge.png",
+    "containers/card.png",
+    "containers/card_selected.png",
+    "containers/divider.png",
+    "containers/panel.png",
+    "containers/panel_header.png",
+    "containers/section.png",
+    "containers/section_header.png",
+    "containers/separator.png",
+    "containers/tooltip.png",
+    "controls/checkbox_hover.png",
+    "controls/checkbox_off.png",
+    "controls/checkbox_on.png",
+    "controls/progress_bar.png",
+    "controls/progress_fill.png",
+    "controls/radio_hover.png",
+    "controls/radio_off.png",
+    "controls/radio_on.png",
+    "controls/slider_active.png",
+    "controls/slider_fill.png",
+    "controls/slider_knob.png",
+    "controls/slider_normal.png",
+    "controls/slider_track.png",
+    "controls/stepper_minus.png",
+    "controls/stepper_plus.png",
+    "dark_compact_left.png",
+    "decorative/bottom_decor.png",
+    "decorative/corner_decor.png",
+    "decorative/energy_corner.png",
+    "decorative/energy_line.png",
+    "decorative/glow_dot.png",
+    "decorative/glow_line.png",
+    "decorative/particle_blue.png",
+    "decorative/particle_gold.png",
+    "decorative/side_decor.png",
+    "decorative/spark_large.png",
+    "decorative/spark_medium.png",
+    "decorative/spark_small.png",
+    "decorative/top_decor.png",
+    "dropdown_after.png",
+    "dropdown_before.png",
+    "dropdown_selected_bg.png",
+    "electric_compact_left.png",
+    "frame_profile.png",
+    "hue_gradient.png",
+    "icons/add_circle.png",
+    "icons/autowalk.png",
+    "icons/battery_energy.png",
+    "icons/calendar_clock.png",
+    "icons/calendar_energy.png",
+    "icons/camera_energy.png",
+    "icons/chat_energy.png",
+    "icons/checklist_energy.png",
+    "icons/clean_broom.png",
+    "icons/clock.png",
+    "icons/cloud_energy.png",
+    "icons/coin_star.png",
+    "icons/cold_shield.png",
+    "icons/compass.png",
+    "icons/crown.png",
+    "icons/database_energy.png",
+    "icons/delete_energy.png",
+    "icons/document_check.png",
+    "icons/documents_energy.png",
+    "icons/download.png",
+    "icons/edit_pen.png",
+    "icons/energy_shield.png",
+    "icons/fast_forward.png",
+    "icons/file_add.png",
+    "icons/file_cancel.png",
+    "icons/file_check.png",
+    "icons/file_download.png",
+    "icons/file_energy.png",
+    "icons/file_upload.png",
+    "icons/filter_sliders.png",
+    "icons/fire.png",
+    "icons/folder_download.png",
+    "icons/folder_energy.png",
+    "icons/folder_favorite.png",
+    "icons/folder_minus.png",
+    "icons/folder_upload.png",
+    "icons/gamepad.png",
+    "icons/gift.png",
+    "icons/globe_ring.png",
+    "icons/group_add.png",
+    "icons/hand_heart.png",
+    "icons/heart_energy.png",
+    "icons/home_energy.png",
+    "icons/leaf.png",
+    "icons/lightbulb.png",
+    "icons/link_broken.png",
+    "icons/location_pin.png",
+    "icons/lock_energy.png",
+    "icons/map.png",
+    "icons/map_pin.png",
+    "icons/medal_star.png",
+    "icons/microphone.png",
+    "icons/moon_stars.png",
+    "icons/mountain_flag.png",
+    "icons/mute.png",
+    "icons/notification_bell.png",
+    "icons/pause.png",
+    "icons/planet_ring.png",
+    "icons/potion.png",
+    "icons/refresh.png",
+    "icons/remove_circle.png",
+    "icons/rewind.png",
+    "icons/rocket.png",
+    "icons/scroll_star.png",
+    "icons/search.png",
+    "icons/search_glow.png",
+    "icons/security_shield.png",
+    "icons/send.png",
+    "icons/server_global.png",
+    "icons/settings.png",
+    "icons/settings_energy.png",
+    "icons/share.png",
+    "icons/shield_star.png",
+    "icons/shield_star_wings.png",
+    "icons/star_energy.png",
+    "icons/stop.png",
+    "icons/sun.png",
+    "icons/sync.png",
+    "icons/target.png",
+    "icons/target_add.png",
+    "icons/teleport_portal.png",
+    "icons/ticket_star.png",
+    "icons/trophy.png",
+    "icons/unlink.png",
+    "icons/unlock_energy.png",
+    "icons/upload.png",
+    "icons/user_add.png",
+    "icons/user_crown.png",
+    "icons/user_group.png",
+    "icons/user_shield_add.png",
+    "icons/video_energy.png",
+    "icons/visibility_eye.png",
+    "icons/volume.png",
+    "icons/warning.png",
+    "icons/water_drop.png",
+    "icons/wifi.png",
+    "icons/wind.png",
+    "loading/loading_bar.png",
+    "loading/loading_ring.png",
+    "loading/loading_spinner.png",
+    "loading/skeleton.png",
+    "loading/skeleton_box.png",
+    "loading/skeleton_text.png",
+    "logo.png",
+    "navigation/sidebar_separator.png",
+    "navigation/tab_disabled.png",
+    "navigation/tab_selected.png",
+    "navigation/utility_button_active_left.png",
+    "navigation/utility_button_normal_blue.png",
+    "navigation/utility_button_normal_left.png",
+    "notification/notification_error.png",
+    "notification/notification_info.png",
+    "notification/notification_progress.png",
+    "notification/notification_success.png",
+    "notification/notification_warning.png",
+    "notification/panel_container.png",
+    "notification/tab_shape_01.png",
+    "notification/tab_shape_02.png",
+    "notification/tab_shape_03.png",
+    "notification/tab_shape_04.png",
+    "notification/toast_background.png",
+    "off.png",
+    "on.png",
+    "player/avatar_away.png",
+    "player/avatar_frame.png",
+    "player/avatar_offline.png",
+    "player/avatar_online.png",
+    "player/player_card.png",
+    "player/player_card_selected.png",
+    "player/rank_badge.png",
+    "player/server_card.png",
+    "player/server_card_selected.png",
+    "popup/confirm_dialog.png",
+    "popup/context_menu.png",
+    "popup/dialog_frame.png",
+    "popup/menu_item.png",
+    "popup/menu_item_hover.png",
+    "popup/modal_background.png",
+    "saturation_value_gradient.png",
+    "scroll/scrollbar_arrow_down.png",
+    "scroll/scrollbar_arrow_up.png",
+    "scroll/scrollbar_thumb.png",
+    "scroll/scrollbar_thumb_hover.png",
+    "scroll/scrollbar_track.png",
+    "search.png",
+    "window/close_button.png",
+    "window/collapse_button.png",
+    "window/expand_button.png",
+    "window/maximize_button.png",
+    "window/minimize_button.png",
+    "window/restore_button.png",
+    "window/window_background.png",
+    "window/window_frame.png",
+    "window/window_humanoid.png",
+    "window/window_humanoid_sleep.png",
+}
 
 local function GetLocalAsset(path)
     local localPath = FolderName .. "/" .. path:gsub("/", "_")
