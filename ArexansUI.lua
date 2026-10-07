@@ -447,6 +447,96 @@ function ArexansUI:CreateWindow(config)
     corner(root, 18)
     stroke(root, theme.Stroke, .15, 1)
 
+    -- Structural Image Elements
+    local windowBackground = new("ImageLabel", {
+        Name = "WindowBackground",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromScale(0, 0),
+        Size = UDim2.fromScale(1, 1),
+        ScaleType = Enum.ScaleType.Stretch,
+        ZIndex = 1,
+    }, root)
+    self.WindowBackground = windowBackground
+    self:SetIcon(windowBackground, "asset/window/window_frame.png")
+    corner(windowBackground, 18)
+
+    local windowFrame = new("ImageLabel", {
+        Name = "WindowFrame",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromScale(0, 0),
+        Size = UDim2.fromScale(1, 1),
+        ScaleType = Enum.ScaleType.Stretch,
+        ZIndex = 2,
+    }, root)
+    self.WindowFrame = windowFrame
+    self:SetIcon(windowFrame, "asset/window/window_frame.png")
+    corner(windowFrame, 18)
+
+    local windowDecoration = new("ImageLabel", {
+        Name = "WindowDecoration",
+        BackgroundTransparency = 1,
+        AnchorPoint = Vector2.new(0.5, 1),
+        Position = UDim2.new(0.5, 0, 0, 15),
+        Size = UDim2.fromOffset(250, 200),
+        ScaleType = Enum.ScaleType.Fit,
+        ZIndex = 10,
+    }, root)
+    self.WindowDecoration = windowDecoration
+    self:SetIcon(windowDecoration, "asset/window/window_humanoid.png")
+
+    -- Show/hide toggle button
+    local toggleUI = new("ImageButton", {
+        Name = "ToggleUI",
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(20, 20),
+        Size = UDim2.fromOffset(46, 46),
+        ScaleType = Enum.ScaleType.Fit,
+        ZIndex = 50,
+        Active = true
+    }, screen)
+
+    self.ToggleUI = toggleUI
+    self:SetIcon(toggleUI, "asset/logo.png")
+
+    toggleUI.MouseButton1Click:Connect(function()
+        root.Visible = not root.Visible
+    end)
+
+    -- Drag logic for toggleUI
+    do
+        local btnDragging = false
+        local btnDragStart
+        local btnStartPos
+
+        toggleUI.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or
+               input.UserInputType == Enum.UserInputType.Touch then
+                btnDragging = true
+                btnDragStart = input.Position
+                btnStartPos = toggleUI.Position
+            end
+        end)
+
+        table.insert(self.Connections, UserInputService.InputChanged:Connect(function(input)
+            if btnDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                local delta = input.Position - btnDragStart
+                toggleUI.Position = UDim2.new(
+                    btnStartPos.X.Scale,
+                    btnStartPos.X.Offset + delta.X,
+                    btnStartPos.Y.Scale,
+                    btnStartPos.Y.Offset + delta.Y
+                )
+            end
+        end))
+
+        table.insert(self.Connections, UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or
+               input.UserInputType == Enum.UserInputType.Touch then
+                btnDragging = false
+            end
+        end))
+    end
+
     -- subtle blue border
     local border = new("Frame", {
         Name = "AccentBorder",
@@ -566,46 +656,33 @@ function ArexansUI:CreateWindow(config)
         local dragStart
         local startPos
 
-        local function begin(input)
-            if input.UserInputType ~= Enum.UserInputType.MouseButton1 and
-               input.UserInputType ~= Enum.UserInputType.Touch then
-                return
-            end
-
-            dragging = true
-            dragStart = input.Position
-            startPos = root.Position
-
-            local conn
-            conn = input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                    if conn then conn:Disconnect() end
-                end
-            end)
-        end
-
-        local function move(input)
-            if not dragging then return end
-
-            local delta = input.Position - dragStart
-            root.Position = UDim2.new(
-                startPos.X.Scale,
-                startPos.X.Offset + delta.X,
-                startPos.Y.Scale,
-                startPos.Y.Offset + delta.Y
-            )
-        end
-
-        header.InputBegan:Connect(begin)
-        header.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement or
+        header.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or
                input.UserInputType == Enum.UserInputType.Touch then
-                table.insert(self.Connections, input.Changed:Connect(function()
-                    move(input)
-                end))
+                dragging = true
+                dragStart = input.Position
+                startPos = root.Position
             end
         end)
+
+        table.insert(self.Connections, UserInputService.InputChanged:Connect(function(input)
+            if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                local delta = input.Position - dragStart
+                root.Position = UDim2.new(
+                    startPos.X.Scale,
+                    startPos.X.Offset + delta.X,
+                    startPos.Y.Scale,
+                    startPos.Y.Offset + delta.Y
+                )
+            end
+        end))
+
+        table.insert(self.Connections, UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or
+               input.UserInputType == Enum.UserInputType.Touch then
+                dragging = false
+            end
+        end))
     end
 
     -- Body
@@ -1441,6 +1518,19 @@ function ArexansUI:CreateWindow(config)
         pcall(function()
             self:SetIcon(logo, config.Logo or "logo")
             self:SetIcon(splashImage, config.HeroImage or "arexans")
+
+            if self.ToggleUI then
+                self:SetIcon(self.ToggleUI, "asset/logo.png")
+            end
+            if self.WindowBackground then
+                self:SetIcon(self.WindowBackground, "asset/window/window_frame.png")
+            end
+            if self.WindowFrame then
+                self:SetIcon(self.WindowFrame, "asset/window/window_frame.png")
+            end
+            if self.WindowDecoration then
+                self:SetIcon(self.WindowDecoration, "asset/window/window_humanoid.png")
+            end
         end)
     end)
 
