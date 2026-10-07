@@ -61,9 +61,44 @@ function ArexansUi:MakeWindow(config)
     end
     MainFrame.Parent = ScreenGui
 
-    -- Draggable functionality
+    -- Logo for Draggable functionality
+    local Logo = Instance.new("ImageLabel")
+    Logo.Name = "Logo"
+    Logo.Size = UDim2.new(0, 100, 0, 30)
+    Logo.Position = UDim2.new(0.5, -50, 0, 10)
+    Logo.BackgroundTransparency = 1
+    local logoPath = getAsset("asset/logo.png")
+    if logoPath ~= "" then
+        Logo.Image = logoPath
+    end
+    Logo.Parent = MainFrame
+
+    -- Humanoid Icon Toggle
+    local HumanoidIcon = Instance.new("ImageButton")
+    HumanoidIcon.Name = "HumanoidIcon"
+    HumanoidIcon.Size = UDim2.new(0, 30, 0, 30)
+    HumanoidIcon.Position = UDim2.new(1, -40, 0, 10)
+    HumanoidIcon.BackgroundTransparency = 1
+    local humActivePath = getAsset("asset/window/window_humanoid.png")
+    local humSleepPath = getAsset("asset/window/window_humanoid_sleep.png")
+    if humActivePath ~= "" then
+        HumanoidIcon.Image = humActivePath
+    end
+    HumanoidIcon.Parent = MainFrame
+
+    local humanoidAwake = true
+    HumanoidIcon.MouseButton1Click:Connect(function()
+        humanoidAwake = not humanoidAwake
+        if humanoidAwake and humActivePath ~= "" then
+            HumanoidIcon.Image = humActivePath
+        elseif not humanoidAwake and humSleepPath ~= "" then
+            HumanoidIcon.Image = humSleepPath
+        end
+    end)
+
+    -- Draggable functionality restricted to Logo
     local dragging, dragInput, dragStart, startPos
-    MainFrame.InputBegan:Connect(function(input)
+    Logo.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
@@ -75,7 +110,7 @@ function ArexansUi:MakeWindow(config)
             end)
         end
     end)
-    MainFrame.InputChanged:Connect(function(input)
+    Logo.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
@@ -263,7 +298,7 @@ function ArexansUi:MakeWindow(config)
         ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
         ContentLayout.Padding = UDim.new(0, 10)
 
-        ContentLayout.GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
             TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
         end)
 
