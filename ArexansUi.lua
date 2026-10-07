@@ -3,17 +3,16 @@ local ArexansUi = {}
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
 
 local function getAsset(path)
-    -- Fallback for standard Roblox Studio
+    -- Fallback for standard Roblox Studio environment or environments lacking executor functions
     if not isfile or not writefile or not getcustomasset or not makefolder then
         return "rbxasset://" .. path
     end
 
     local folderPath = "ArexansUI_Assets"
     if not isfolder(folderPath) then
-        makefolder(folderPath)
+        pcall(function() makefolder(folderPath) end)
     end
 
     local fileName = folderPath .. "/" .. path:gsub("/", "_")
@@ -22,15 +21,18 @@ local function getAsset(path)
         local success, result = pcall(function()
             return game:HttpGet("https://raw.githubusercontent.com/AREXANS/uiarexans/main/" .. path)
         end)
-        if success and result then
-            writefile(fileName, result)
+
+        -- If successful and we actually got image data (not a 404 text response)
+        if success and result and #result > 100 then
+            pcall(function() writefile(fileName, result) end)
         else
-            return "rbxasset://" .. path
+            -- If downloading fails or image isn't found, return empty string to prevent errors
+            return ""
         end
     end
 
-    local customAsset = getcustomasset(fileName)
-    return customAsset or ""
+    local success, customAsset = pcall(function() return getcustomasset(fileName) end)
+    return success and customAsset and customAsset or ""
 end
 
 function ArexansUi:MakeWindow(config)
@@ -46,8 +48,17 @@ function ArexansUi:MakeWindow(config)
     MainFrame.Name = "MainFrame"
     MainFrame.Size = UDim2.new(0, 650, 0, 450)
     MainFrame.Position = UDim2.new(0.5, -325, 0.5, -225)
-    MainFrame.BackgroundTransparency = 1
-    MainFrame.Image = getAsset("asset/window/window_frame+background.png")
+    MainFrame.BackgroundTransparency = 0 -- Fallback color visibility
+    MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    local MainCorner = Instance.new("UICorner")
+    MainCorner.CornerRadius = UDim.new(0, 10)
+    MainCorner.Parent = MainFrame
+
+    local imagePath = getAsset("asset/window/window_frame+background.png")
+    if imagePath ~= "" then
+        MainFrame.Image = imagePath
+        MainFrame.BackgroundTransparency = 1
+    end
     MainFrame.Parent = ScreenGui
 
     -- Draggable functionality
@@ -80,7 +91,11 @@ function ArexansUi:MakeWindow(config)
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
     Sidebar.Size = UDim2.new(0, 160, 1, 0)
-    Sidebar.BackgroundTransparency = 1
+    Sidebar.BackgroundTransparency = 0
+    Sidebar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    local SidebarCorner = Instance.new("UICorner")
+    SidebarCorner.CornerRadius = UDim.new(0, 10)
+    SidebarCorner.Parent = Sidebar
     Sidebar.Parent = MainFrame
 
     local SidebarLayout = Instance.new("UIListLayout")
@@ -135,15 +150,27 @@ function ArexansUi:MakeWindow(config)
 
         local ToastFrame = Instance.new("ImageLabel")
         ToastFrame.Size = UDim2.new(1, 0, 0, 60)
-        ToastFrame.BackgroundTransparency = 1
-        ToastFrame.Image = getAsset("asset/notification/toast_background.png")
+        ToastFrame.BackgroundTransparency = 0
+        ToastFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        local ToastCorner = Instance.new("UICorner")
+        ToastCorner.CornerRadius = UDim.new(0, 6)
+        ToastCorner.Parent = ToastFrame
+
+        local bgPath = getAsset("asset/notification/toast_background.png")
+        if bgPath ~= "" then
+            ToastFrame.Image = bgPath
+            ToastFrame.BackgroundTransparency = 1
+        end
         ToastFrame.Parent = ToastContainer
 
         local Icon = Instance.new("ImageLabel")
         Icon.Size = UDim2.new(0, 24, 0, 24)
         Icon.Position = UDim2.new(0, 10, 0.5, -12)
         Icon.BackgroundTransparency = 1
-        Icon.Image = getAsset(typeIcon)
+        local iconPath = getAsset(typeIcon)
+        if iconPath ~= "" then
+            Icon.Image = iconPath
+        end
         Icon.Parent = ToastFrame
 
         local TitleLabel = Instance.new("TextLabel")
@@ -170,7 +197,7 @@ function ArexansUi:MakeWindow(config)
 
         task.spawn(function()
             task.wait(duration)
-            local fadeOut = TweenService:Create(ToastFrame, TweenInfo.new(0.5), {ImageTransparency = 1})
+            local fadeOut = TweenService:Create(ToastFrame, TweenInfo.new(0.5), {ImageTransparency = 1, BackgroundTransparency = 1})
             fadeOut:Play()
             TweenService:Create(Icon, TweenInfo.new(0.5), {ImageTransparency = 1}):Play()
             TweenService:Create(TitleLabel, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
@@ -188,15 +215,27 @@ function ArexansUi:MakeWindow(config)
         local TabButton = Instance.new("ImageButton")
         TabButton.Name = tabName .. "Tab"
         TabButton.Size = UDim2.new(1, 0, 0, 32)
-        TabButton.BackgroundTransparency = 1
-        TabButton.Image = getAsset("asset/navigation/sidebar_item_normal.png")
+        TabButton.BackgroundTransparency = 0
+        TabButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        local TabCorner = Instance.new("UICorner")
+        TabCorner.CornerRadius = UDim.new(0, 6)
+        TabCorner.Parent = TabButton
+
+        local normalPath = getAsset("asset/navigation/sidebar_item_normal.png")
+        if normalPath ~= "" then
+            TabButton.Image = normalPath
+            TabButton.BackgroundTransparency = 1
+        end
         TabButton.Parent = Sidebar
 
         local TabIcon = Instance.new("ImageLabel")
         TabIcon.Size = UDim2.new(0, 20, 0, 20)
         TabIcon.Position = UDim2.new(0, 10, 0.5, -10)
         TabIcon.BackgroundTransparency = 1
-        TabIcon.Image = getAsset(tabIcon)
+        local tIconPath = getAsset(tabIcon)
+        if tIconPath ~= "" then
+            TabIcon.Image = tIconPath
+        end
         TabIcon.Parent = TabButton
 
         local TabLabel = Instance.new("TextLabel")
@@ -238,11 +277,24 @@ function ArexansUi:MakeWindow(config)
         TabButton.MouseButton1Click:Connect(function()
             for _, t in pairs(WindowAPI.Tabs) do
                 t.Content.Visible = false
-                t.Button.Image = getAsset("asset/navigation/sidebar_item_normal.png")
+                local nPath = getAsset("asset/navigation/sidebar_item_normal.png")
+                if nPath ~= "" then
+                    t.Button.Image = nPath
+                    t.Button.BackgroundTransparency = 1
+                else
+                    t.Button.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                end
                 t.Label.TextColor3 = Color3.fromRGB(200, 200, 200)
             end
             TabContent.Visible = true
-            TabButton.Image = getAsset("asset/navigation/sidebar_item_selected.png")
+
+            local sPath = getAsset("asset/navigation/sidebar_item_selected.png")
+            if sPath ~= "" then
+                TabButton.Image = sPath
+                TabButton.BackgroundTransparency = 1
+            else
+                TabButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+            end
             TabLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
         end)
 
@@ -256,8 +308,17 @@ function ArexansUi:MakeWindow(config)
             local ButtonFrame = Instance.new("ImageButton")
             ButtonFrame.Name = "Button_" .. btnName
             ButtonFrame.Size = UDim2.new(1, 0, 0, 38)
-            ButtonFrame.BackgroundTransparency = 1
-            ButtonFrame.Image = getAsset("asset/button.png")
+            ButtonFrame.BackgroundTransparency = 0
+            ButtonFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+            local BtnCorner = Instance.new("UICorner")
+            BtnCorner.CornerRadius = UDim.new(0, 6)
+            BtnCorner.Parent = ButtonFrame
+
+            local bPath = getAsset("asset/button.png")
+            if bPath ~= "" then
+                ButtonFrame.Image = bPath
+                ButtonFrame.BackgroundTransparency = 1
+            end
             ButtonFrame.Parent = TabContent
 
             local BtnLabel = Instance.new("TextLabel")
@@ -270,9 +331,21 @@ function ArexansUi:MakeWindow(config)
             BtnLabel.Parent = ButtonFrame
 
             ButtonFrame.MouseButton1Click:Connect(function()
-                ButtonFrame.Image = getAsset("asset/button_hover.png")
+                local hoverPath = getAsset("asset/button_hover.png")
+                if hoverPath ~= "" then
+                    ButtonFrame.Image = hoverPath
+                else
+                    ButtonFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+                end
+
                 task.wait(0.1)
-                ButtonFrame.Image = getAsset("asset/button.png")
+
+                if bPath ~= "" then
+                    ButtonFrame.Image = bPath
+                else
+                    ButtonFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                end
+
                 callback()
             end)
         end
@@ -288,11 +361,16 @@ function ArexansUi:MakeWindow(config)
             local ToggleFrame = Instance.new("Frame")
             ToggleFrame.Name = "Toggle_" .. togName
             ToggleFrame.Size = UDim2.new(1, 0, 0, 38)
-            ToggleFrame.BackgroundTransparency = 1
+            ToggleFrame.BackgroundTransparency = 0
+            ToggleFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+            local TogFrameCorner = Instance.new("UICorner")
+            TogFrameCorner.CornerRadius = UDim.new(0, 6)
+            TogFrameCorner.Parent = ToggleFrame
             ToggleFrame.Parent = TabContent
 
             local TogLabel = Instance.new("TextLabel")
             TogLabel.Size = UDim2.new(1, -50, 1, 0)
+            TogLabel.Position = UDim2.new(0, 10, 0, 0)
             TogLabel.BackgroundTransparency = 1
             TogLabel.Text = togName
             TogLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -303,14 +381,43 @@ function ArexansUi:MakeWindow(config)
 
             local TogButton = Instance.new("ImageButton")
             TogButton.Size = UDim2.new(0, 44, 0, 22)
-            TogButton.Position = UDim2.new(1, -44, 0.5, -11)
-            TogButton.BackgroundTransparency = 1
-            TogButton.Image = state and getAsset("asset/on.png") or getAsset("asset/off.png")
+            TogButton.Position = UDim2.new(1, -54, 0.5, -11)
+            TogButton.BackgroundTransparency = 0
+            TogButton.BackgroundColor3 = state and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(50, 50, 50)
+            local TogCorner = Instance.new("UICorner")
+            TogCorner.CornerRadius = UDim.new(1, 0)
+            TogCorner.Parent = TogButton
+
+            local onPath = getAsset("asset/on.png")
+            local offPath = getAsset("asset/off.png")
+
+            if state and onPath ~= "" then
+                TogButton.Image = onPath
+                TogButton.BackgroundTransparency = 1
+            elseif not state and offPath ~= "" then
+                TogButton.Image = offPath
+                TogButton.BackgroundTransparency = 1
+            end
+
             TogButton.Parent = ToggleFrame
 
             TogButton.MouseButton1Click:Connect(function()
                 state = not state
-                TogButton.Image = state and getAsset("asset/on.png") or getAsset("asset/off.png")
+                if state then
+                    if onPath ~= "" then
+                        TogButton.Image = onPath
+                        TogButton.BackgroundTransparency = 1
+                    else
+                        TogButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+                    end
+                else
+                    if offPath ~= "" then
+                        TogButton.Image = offPath
+                        TogButton.BackgroundTransparency = 1
+                    else
+                        TogButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                    end
+                end
                 callback(state)
             end)
         end
@@ -326,11 +433,16 @@ function ArexansUi:MakeWindow(config)
             local SliderFrame = Instance.new("Frame")
             SliderFrame.Name = "Slider_" .. slName
             SliderFrame.Size = UDim2.new(1, 0, 0, 50)
-            SliderFrame.BackgroundTransparency = 1
+            SliderFrame.BackgroundTransparency = 0
+            SliderFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+            local SlCorner = Instance.new("UICorner")
+            SlCorner.CornerRadius = UDim.new(0, 6)
+            SlCorner.Parent = SliderFrame
             SliderFrame.Parent = TabContent
 
             local SlLabel = Instance.new("TextLabel")
             SlLabel.Size = UDim2.new(1, -40, 0, 20)
+            SlLabel.Position = UDim2.new(0, 10, 0, 5)
             SlLabel.BackgroundTransparency = 1
             SlLabel.Text = slName
             SlLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -341,7 +453,7 @@ function ArexansUi:MakeWindow(config)
 
             local ValueLabel = Instance.new("TextLabel")
             ValueLabel.Size = UDim2.new(0, 40, 0, 20)
-            ValueLabel.Position = UDim2.new(1, -40, 0, 0)
+            ValueLabel.Position = UDim2.new(1, -50, 0, 5)
             ValueLabel.BackgroundTransparency = 1
             ValueLabel.Text = tostring(default)
             ValueLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -351,23 +463,50 @@ function ArexansUi:MakeWindow(config)
             ValueLabel.Parent = SliderFrame
 
             local Track = Instance.new("ImageLabel")
-            Track.Size = UDim2.new(1, 0, 0, 10)
-            Track.Position = UDim2.new(0, 0, 1, -15)
-            Track.BackgroundTransparency = 1
-            Track.Image = getAsset("asset/controls/slider_track.png")
+            Track.Size = UDim2.new(1, -20, 0, 10)
+            Track.Position = UDim2.new(0, 10, 1, -15)
+            Track.BackgroundTransparency = 0
+            Track.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            local TrackCorner = Instance.new("UICorner")
+            TrackCorner.CornerRadius = UDim.new(1, 0)
+            TrackCorner.Parent = Track
+
+            local tPath = getAsset("asset/controls/slider_track.png")
+            if tPath ~= "" then
+                Track.Image = tPath
+                Track.BackgroundTransparency = 1
+            end
             Track.Parent = SliderFrame
 
             local Fill = Instance.new("ImageLabel")
             Fill.Size = UDim2.new(math.clamp((default - min) / (max - min), 0, 1), 0, 1, 0)
-            Fill.BackgroundTransparency = 1
-            Fill.Image = getAsset("asset/controls/slider_fill.png")
+            Fill.BackgroundTransparency = 0
+            Fill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+            local FillCorner = Instance.new("UICorner")
+            FillCorner.CornerRadius = UDim.new(1, 0)
+            FillCorner.Parent = Fill
+
+            local fPath = getAsset("asset/controls/slider_fill.png")
+            if fPath ~= "" then
+                Fill.Image = fPath
+                Fill.BackgroundTransparency = 1
+            end
             Fill.Parent = Track
 
             local Knob = Instance.new("ImageButton")
             Knob.Size = UDim2.new(0, 16, 0, 16)
             Knob.Position = UDim2.new(math.clamp((default - min) / (max - min), 0, 1), -8, 0.5, -8)
-            Knob.BackgroundTransparency = 1
-            Knob.Image = getAsset("asset/controls/slider_knob.png")
+            Knob.BackgroundTransparency = 0
+            Knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            local KnobCorner = Instance.new("UICorner")
+            KnobCorner.CornerRadius = UDim.new(1, 0)
+            KnobCorner.Parent = Knob
+
+            local kPath = getAsset("asset/controls/slider_knob.png")
+            if kPath ~= "" then
+                Knob.Image = kPath
+                Knob.BackgroundTransparency = 1
+            end
             Knob.Parent = Track
 
             local dragging = false
@@ -411,12 +550,16 @@ function ArexansUi:MakeWindow(config)
             local CheckFrame = Instance.new("Frame")
             CheckFrame.Name = "Checkbox_" .. chkName
             CheckFrame.Size = UDim2.new(1, 0, 0, 38)
-            CheckFrame.BackgroundTransparency = 1
+            CheckFrame.BackgroundTransparency = 0
+            CheckFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+            local ChkFrameCorner = Instance.new("UICorner")
+            ChkFrameCorner.CornerRadius = UDim.new(0, 6)
+            ChkFrameCorner.Parent = CheckFrame
             CheckFrame.Parent = TabContent
 
             local ChkLabel = Instance.new("TextLabel")
-            ChkLabel.Size = UDim2.new(1, -30, 1, 0)
-            ChkLabel.Position = UDim2.new(0, 30, 0, 0)
+            ChkLabel.Size = UDim2.new(1, -40, 1, 0)
+            ChkLabel.Position = UDim2.new(0, 40, 0, 0)
             ChkLabel.BackgroundTransparency = 1
             ChkLabel.Text = chkName
             ChkLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -427,14 +570,42 @@ function ArexansUi:MakeWindow(config)
 
             local ChkButton = Instance.new("ImageButton")
             ChkButton.Size = UDim2.new(0, 20, 0, 20)
-            ChkButton.Position = UDim2.new(0, 0, 0.5, -10)
-            ChkButton.BackgroundTransparency = 1
-            ChkButton.Image = state and getAsset("asset/controls/checkbox_on.png") or getAsset("asset/controls/checkbox_off.png")
+            ChkButton.Position = UDim2.new(0, 10, 0.5, -10)
+            ChkButton.BackgroundTransparency = 0
+            ChkButton.BackgroundColor3 = state and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(25, 25, 25)
+            local ChkCorner = Instance.new("UICorner")
+            ChkCorner.CornerRadius = UDim.new(0, 4)
+            ChkCorner.Parent = ChkButton
+
+            local onPath = getAsset("asset/controls/checkbox_on.png")
+            local offPath = getAsset("asset/controls/checkbox_off.png")
+
+            if state and onPath ~= "" then
+                ChkButton.Image = onPath
+                ChkButton.BackgroundTransparency = 1
+            elseif not state and offPath ~= "" then
+                ChkButton.Image = offPath
+                ChkButton.BackgroundTransparency = 1
+            end
             ChkButton.Parent = CheckFrame
 
             ChkButton.MouseButton1Click:Connect(function()
                 state = not state
-                ChkButton.Image = state and getAsset("asset/controls/checkbox_on.png") or getAsset("asset/controls/checkbox_off.png")
+                if state then
+                    if onPath ~= "" then
+                        ChkButton.Image = onPath
+                        ChkButton.BackgroundTransparency = 1
+                    else
+                        ChkButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+                    end
+                else
+                    if offPath ~= "" then
+                        ChkButton.Image = offPath
+                        ChkButton.BackgroundTransparency = 1
+                    else
+                        ChkButton.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+                    end
+                end
                 callback(state)
             end)
         end
@@ -442,7 +613,15 @@ function ArexansUi:MakeWindow(config)
         table.insert(WindowAPI.Tabs, {Button = TabButton, Content = TabContent, Label = TabLabel})
         if #WindowAPI.Tabs == 1 then
             TabContent.Visible = true
-            TabButton.Image = getAsset("asset/navigation/sidebar_item_selected.png")
+
+            local sPath = getAsset("asset/navigation/sidebar_item_selected.png")
+            if sPath ~= "" then
+                TabButton.Image = sPath
+                TabButton.BackgroundTransparency = 1
+            else
+                TabButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+            end
+
             TabLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
         end
 

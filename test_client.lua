@@ -1,6 +1,4 @@
--- You can load the UI using the updated link you provided:
--- local ArexansUi = loadstring(game:HttpGet("https://raw.githubusercontent.com/AREXANS/uiarexans/refs/heads/arexansui-implementation-12405782579210080253/ArexansUi.lua"))()
-local ArexansUi = require(script.Parent:WaitForChild("ArexansUi"))
+local ArexansUi = loadstring(game:HttpGet("https://raw.githubusercontent.com/AREXANS/uiarexans/refs/heads/arexansui-implementation-12405782579210080253/ArexansUi.lua"))()
 
 local Window = ArexansUi:MakeWindow({
     Name = "Arexans Hub"
