@@ -224,11 +224,11 @@ local function GetLocalAsset(path)
     local getAsset = getcustomasset or getsynasset
     local normalizedPath = string.gsub(path, "/", "_")
     local localPath = FolderName .. "/" .. normalizedPath
-    
-    if isfile and isfile(localPath) and getAsset then 
-        return getAsset(localPath) 
+
+    if isfile and isfile(localPath) and getAsset then
+        return getAsset(localPath)
     end
-    
+
     -- Fallback for testing environments / downloading on the fly
     if writefile and getAsset and isfile then
         local success, data = pcall(function()
@@ -243,7 +243,7 @@ local function GetLocalAsset(path)
             end
         end
     end
-    
+
     return "rbxasset://" .. localPath
 end
 
@@ -276,7 +276,7 @@ end
 
 function ArexansUI:CreateWindow(WindowName)
     local WindowData = {}
-    
+
     -- 1. Setup Main GUI
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "ArexansInteractiveUI"
@@ -786,7 +786,7 @@ function ArexansUI:CreateWindow(WindowName)
     -- ==============================================================================
     -- PERBAIKAN KOORDINAT PRESISI KOTAK KIRI & KANAN
     -- ==============================================================================
-    
+
     -- KOTAK TABS (Kiri)
     local TabContainer = Instance.new("ScrollingFrame")
     TabContainer.Name = "TabContainer"
@@ -797,7 +797,7 @@ function ArexansUI:CreateWindow(WindowName)
     TabContainer.Size = UDim2.new(0, 134, 0, 243)
     TabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
     TabContainer.ScrollBarThickness = 2
-    TabContainer.ClipsDescendants = true 
+    TabContainer.ClipsDescendants = true
     TabContainer.ZIndex = 5
     TabContainer.Parent = WindowRoot
 
@@ -806,7 +806,7 @@ function ArexansUI:CreateWindow(WindowName)
     TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     TabListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     TabListLayout.Parent = TabContainer
-    
+
     -- Manually update CanvasSize instead of AutomaticCanvasSize (memory guideline)
     TabListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         TabContainer.CanvasSize = UDim2.new(0, 0, 0, TabListLayout.AbsoluteContentSize.Y)
@@ -846,8 +846,8 @@ function ArexansUI:CreateWindow(WindowName)
     windowframe.Position = UDim2.new(0.5, 0, 0.5, 0)
     windowframe.Size = UDim2.new(0, 557, 0, 299)
     windowframe.AnchorPoint = Vector2.new(0.5, 0.5)
-    windowframe.ZIndex = 50 
-    windowframe.Active = false 
+    windowframe.ZIndex = 50
+    windowframe.Active = false
     windowframe.Parent = WindowRoot
 
     -- HUMANOID VISUAL SAJA.
@@ -916,7 +916,7 @@ function ArexansUI:CreateWindow(WindowName)
 
     function WindowData:CreateTab(TabName)
         local TabData = {}
-        
+
         -- Tombol Tab
         local TabButton = Instance.new("ImageButton")
         TabButton.Name = TabName .. "_Tab"
@@ -1249,7 +1249,6 @@ function ArexansUI:CreateWindow(WindowName)
             local function CloseList()
                 open = false
                 ListPanel.Visible = false
-                Button.ImageTransparency = 0
                 Button.ZIndex = 31
                 Label.ZIndex = 32
                 ValueLabel.ZIndex = 32
@@ -1305,10 +1304,9 @@ function ArexansUI:CreateWindow(WindowName)
                 -- Dropdown tetap berada DI DALAM area Page.
                 -- ZIndex sengaja di bawah frame (50) dan humanoid (51),
                 -- sehingga asset bingkai/humanoid selalu menjadi lapisan terdepan.
-                Button.ImageTransparency = 1
-                Button.ZIndex = 45
-                Label.ZIndex = 46
-                ValueLabel.ZIndex = 46
+                Button.ZIndex = 31
+                Label.ZIndex = 32
+                ValueLabel.ZIndex = 32
 
                 task.defer(function()
                     if not Page.Visible or not Holder.Parent then return end
