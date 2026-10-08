@@ -1488,7 +1488,7 @@ function ArexansUI:CreateWindow(WindowName)
             local slot = GetItemParent()
             local Card = Instance.new("ImageLabel")
             Card.Name = "Card_" .. tostring(CardTitle):gsub("%s+", "_")
-            Card.Image = GetLocalAsset(Options.Asset or "player/player_card.png")
+            Card.Image = GetLocalAsset(Options.Asset or "containers/panel.png")
             Card.BackgroundTransparency = 1
             Card.Size = UDim2.new(CardWidthMode, CardWidthMode == 1 and 0 or -1, 0, CardHeight)
             Card.ScaleType = Enum.ScaleType.Stretch
@@ -1568,7 +1568,7 @@ function ArexansUI:CreateWindow(WindowName)
                 "Roblox account • realtime",
                 "icons/user_crown.png",
                 "Loading profile...",
-                {Asset = "player/player_card.png", Height = 88}
+                {Asset = "containers/panel.png", Height = 88}
             )
 
             local Avatar = Instance.new("ImageLabel")
@@ -1582,7 +1582,7 @@ function ArexansUI:CreateWindow(WindowName)
 
             local AvatarFrame = Instance.new("ImageLabel")
             AvatarFrame.Name = "AvatarFrame"
-            AvatarFrame.Image = GetLocalAsset("frame_profile.png")
+            AvatarFrame.Image = GetLocalAsset("player/avatar_frame.png")
             AvatarFrame.BackgroundTransparency = 1
             AvatarFrame.Position = Avatar.Position
             AvatarFrame.Size = Avatar.Size
@@ -1621,7 +1621,7 @@ function ArexansUI:CreateWindow(WindowName)
                 "Realtime workspace camera",
                 "icons/camera_energy.png",
                 "Reading camera...",
-                {Asset = "containers/card.png", Height = 88}
+                {Asset = "containers/panel.png", Height = 88}
             )
 
             local function UpdateCamera()
@@ -1658,7 +1658,7 @@ function ArexansUI:CreateWindow(WindowName)
                 "Realtime Roblox server",
                 "icons/server_global.png",
                 "Reading server...",
-                {Asset = "player/server_card.png", Height = 88}
+                {Asset = "containers/panel.png", Height = 88}
             )
 
             local function UpdateServer()
@@ -1692,7 +1692,7 @@ function ArexansUI:CreateWindow(WindowName)
                 "Local player realtime",
                 "icons/visibility_eye.png",
                 "Reading character...",
-                {Asset = "containers/card.png", Height = 88}
+                {Asset = "containers/panel.png", Height = 88}
             )
 
             local function UpdateCharacter()
@@ -1856,13 +1856,6 @@ local Window = ArexansUI:CreateWindow("Arexans Hub")
 
 -- HOME: dashboard card, profile, camera, server, character.
 local HomeTab = Window:CreateTab("Home")
-HomeTab:CreateCategory("AREXANS DASHBOARD")
-HomeTab:CreateProfileCard()
-HomeTab:CreateCameraCard()
-HomeTab:CreateServerCard()
-HomeTab:CreateCharacterCard()
-HomeTab:CreateCategory("QUICK INFO")
-HomeTab:CreateLabel("Dashboard aktif • semua data card diperbarui realtime.")
 
 -- MAIN: fitur utama tetap tersedia dan tersusun di dalam satu panel penuh.
 local MainTab = Window:CreateTab("Main")
