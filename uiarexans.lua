@@ -1015,16 +1015,15 @@ function ArexansUI:CreateWindow(WindowName)
         end
 
         local function CreateCategoryInternal(title)
-            -- Category memakai asset yang sudah tersedia; tidak ada Frame/Stroke
-            -- buatan untuk garis dekoratif.
             currentRow = nil
             currentColumn = 2
 
             local Category = Instance.new("ImageLabel")
             Category.Name = "Category_" .. tostring(title):gsub("%s+", "_")
-            Category.Image = GetLocalAsset("containers/section_header.png")
+            Category.Image = GetLocalAsset("containers/panel.png")
             Category.BackgroundTransparency = 1
-            Category.Size = UDim2.new(1, 0, 0, 18)
+            Category.Size = UDim2.new(1, -8, 0, 24)
+            Category.Position = UDim2.new(0, 4, 0, 0)
             Category.ScaleType = Enum.ScaleType.Stretch
             Category.ZIndex = 40
             Category.Parent = Content
@@ -1036,8 +1035,8 @@ function ArexansUI:CreateWindow(WindowName)
             Title.Size = UDim2.new(1, -16, 1, 0)
             Title.Font = Enum.Font.GothamBold
             Title.Text = tostring(title or "Category")
-            Title.TextColor3 = Color3.fromRGB(230, 248, 255)
-            Title.TextSize = 7
+            Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Title.TextSize = 10
             Title.TextXAlignment = Enum.TextXAlignment.Center
             Title.TextTruncate = Enum.TextTruncate.AtEnd
             Title.ZIndex = 41
@@ -1177,7 +1176,8 @@ function ArexansUI:CreateWindow(WindowName)
             local Holder = Instance.new("Frame")
             Holder.Name = DropdownName .. "_Dropdown"
             Holder.BackgroundTransparency = 1
-            Holder.Size = UDim2.new(1, 0, 0, 30)
+            Holder.Size = UDim2.new(1, -10, 0, 30)
+            Holder.Position = UDim2.new(0, 5, 0, 0)
             Holder.ZIndex = 50
             Holder.Parent = GetItemParent()
 
@@ -1355,7 +1355,8 @@ function ArexansUI:CreateWindow(WindowName)
             Button.Image = GetLocalAsset("button.png")
             Button.BackgroundTransparency = 1
             Button.AutoButtonColor = false
-            Button.Size = UDim2.new(1, 0, 0, 28)
+            Button.Size = UDim2.new(1, -10, 0, 28)
+            Button.Position = UDim2.new(0, 5, 0, 0)
             Button.ScaleType = Enum.ScaleType.Stretch
             Button.ZIndex = 30
             Button.Parent = GetItemParent()
@@ -1401,7 +1402,8 @@ function ArexansUI:CreateWindow(WindowName)
             ToggleBg.BackgroundColor3 = State and Color3.fromRGB(50, 150, 255) or Color3.fromRGB(30, 30, 30) -- Fallback
             ToggleBg.BackgroundTransparency = 1
             ToggleBg.AutoButtonColor = false
-            ToggleBg.Size = UDim2.new(1, 0, 0, 28) 
+            ToggleBg.Size = UDim2.new(1, -10, 0, 28)
+            ToggleBg.Position = UDim2.new(0, 5, 0, 0)
             ToggleBg.ZIndex = 10
             ToggleBg.Parent = GetItemParent()
 
@@ -1733,29 +1735,45 @@ function ArexansUI:CreateWindow(WindowName)
             local value = math.clamp(tonumber(Default) or Min, Min, Max)
             Callback = Callback or function() end
 
-            local Holder = Instance.new("Frame")
+            local Holder = Instance.new("ImageLabel")
             Holder.Name = SliderName .. "_Slider"
+            Holder.Image = GetLocalAsset("long_horizonal_box.png")
+            Holder.ScaleType = Enum.ScaleType.Slice
+            Holder.SliceCenter = Rect.new(4, 4, 252, 252)
             Holder.BackgroundTransparency = 1
-            Holder.Size = UDim2.new(1, 0, 0, 28)
+            Holder.Size = UDim2.new(1, -10, 0, 42)
+            Holder.Position = UDim2.new(0, 5, 0, 0)
             Holder.ZIndex = 30
             Holder.Parent = GetItemParent()
 
             local Title = Instance.new("TextLabel")
             Title.BackgroundTransparency = 1
-            Title.Position = UDim2.new(0, 10, 0, 0)
-            Title.Size = UDim2.new(0.52, 0, 1, 0)
+            Title.Position = UDim2.new(0, 10, 0, 4)
+            Title.Size = UDim2.new(0.5, 0, 0, 14)
             Title.Font = Enum.Font.GothamBold
             Title.Text = SliderName
             Title.TextColor3 = Color3.fromRGB(240, 250, 255)
-            Title.TextSize = 9
+            Title.TextSize = 11
             Title.TextXAlignment = Enum.TextXAlignment.Left
             Title.ZIndex = 31
             Title.Parent = Holder
 
+            local ValueLabel = Instance.new("TextLabel")
+            ValueLabel.BackgroundTransparency = 1
+            ValueLabel.Position = UDim2.new(0.5, -10, 0, 4)
+            ValueLabel.Size = UDim2.new(0.5, 0, 0, 14)
+            ValueLabel.Font = Enum.Font.Gotham
+            ValueLabel.Text = tostring(value)
+            ValueLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+            ValueLabel.TextSize = 10
+            ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+            ValueLabel.ZIndex = 31
+            ValueLabel.Parent = Holder
+
             local Track = Instance.new("Frame")
             Track.BackgroundTransparency = 1
-            Track.Position = UDim2.new(0.52, 0, 0.5, -3)
-            Track.Size = UDim2.new(0.36, 0, 0, 6)
+            Track.Position = UDim2.new(0, 10, 0, 22)
+            Track.Size = UDim2.new(1, -20, 0, 12)
             Track.ZIndex = 31
             Track.Parent = Holder
 
@@ -1778,59 +1796,52 @@ function ArexansUI:CreateWindow(WindowName)
             local Knob = Instance.new("ImageLabel")
             Knob.BackgroundTransparency = 1
             Knob.Image = GetLocalAsset("controls/slider_knob.png")
-            Knob.AnchorPoint = Vector2.new(0.5, 0.5)
-            Knob.Position = UDim2.new((value - Min) / (Max - Min), 0, 0.5, 0)
-            Knob.Size = UDim2.new(0, 12, 0, 12)
+            Knob.Size = UDim2.new(0, 18, 0, 18)
+            Knob.Position = UDim2.new((value - Min) / (Max - Min), -9, 0.5, -9)
             Knob.ZIndex = 33
             Knob.Parent = Track
 
-            local Value = Instance.new("TextLabel")
-            Value.BackgroundTransparency = 1
-            Value.Position = UDim2.new(0.89, 0, 0, 0)
-            Value.Size = UDim2.new(0.11, -6, 1, 0)
-            Value.Font = Enum.Font.GothamBold
-            Value.Text = tostring(math.floor(value))
-            Value.TextColor3 = Color3.fromRGB(225, 242, 255)
-            Value.TextSize = 8
-            Value.TextXAlignment = Enum.TextXAlignment.Right
-            Value.ZIndex = 31
-            Value.Parent = Holder
+            local dragging = false
 
-            local function SetSlider(v, fire)
-                value = math.clamp(tonumber(v) or value, Min, Max)
-                local alpha = (value - Min) / (Max - Min)
-                Fill.Size = UDim2.new(alpha, 0, 1, 0)
-                Knob.Position = UDim2.new(alpha, 0, 0.5, 0)
-                Value.Text = tostring(math.floor(value + 0.5))
-                if fire then Callback(value) end
+            local function update(input)
+                local pos = math.clamp((input.Position.X - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
+                value = math.floor(Min + ((Max - Min) * pos))
+                ValueLabel.Text = tostring(value)
+                Fill.Size = UDim2.new(pos, 0, 1, 0)
+                Knob.Position = UDim2.new(pos, -9, 0.5, -9)
+                Callback(value)
             end
 
-            local draggingSlider = false
-            Track.InputBegan:Connect(function(input)
+            Knob.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    draggingSlider = true
-                    local alpha = math.clamp((input.Position.X - Track.AbsolutePosition.X) / math.max(1, Track.AbsoluteSize.X), 0, 1)
-                    SetSlider(Min + (Max - Min) * alpha, true)
+                    dragging = true
                 end
             end)
-            UserInputService.InputChanged:Connect(function(input)
-                if not draggingSlider then return end
-                if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then return end
-                local alpha = math.clamp((input.Position.X - Track.AbsolutePosition.X) / math.max(1, Track.AbsoluteSize.X), 0, 1)
-                SetSlider(Min + (Max - Min) * alpha, true)
-            end)
+
             UserInputService.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    draggingSlider = false
+                    dragging = false
+                end
+            end)
+
+            UserInputService.InputChanged:Connect(function(input)
+                if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                    update(input)
                 end
             end)
 
             return {
-                SetValue = function(_, v) SetSlider(v, true) end,
+                SetValue = function(_, newValue)
+                    value = math.clamp(tonumber(newValue) or Min, Min, Max)
+                    local pos = (value - Min) / (Max - Min)
+                    ValueLabel.Text = tostring(value)
+                    Fill.Size = UDim2.new(pos, 0, 1, 0)
+                    Knob.Position = UDim2.new(pos, -9, 0.5, -9)
+                    Callback(value)
+                end,
                 GetValue = function() return value end,
             }
         end
-
 
         function TabData:CreateESP(ESPName)
             currentRow = nil
