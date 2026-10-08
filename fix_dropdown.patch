@@ -1,0 +1,24 @@
+--- uiarexans.lua
++++ uiarexans.lua
+@@ -1249,6 +1249,7 @@
+             local function CloseList()
+                 open = false
+                 ListPanel.Visible = false
++                Button.ImageTransparency = 0
+                 Button.ZIndex = 31
+                 Label.ZIndex = 32
+                 ValueLabel.ZIndex = 32
+@@ -1297,9 +1298,10 @@
+                 -- Dropdown tetap berada DI DALAM area Page.
+                 -- ZIndex sengaja di bawah frame (50) dan humanoid (51),
+                 -- sehingga asset bingkai/humanoid selalu menjadi lapisan terdepan.
+-                Button.ZIndex = 31
+-                Label.ZIndex = 32
+-                ValueLabel.ZIndex = 32
++                Button.ImageTransparency = 1
++                Button.ZIndex = 45
++                Label.ZIndex = 46
++                ValueLabel.ZIndex = 46
+
+                 task.defer(function()
+                     if not Page.Visible or not Holder.Parent then return end
