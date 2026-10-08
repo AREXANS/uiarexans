@@ -796,13 +796,13 @@ function ArexansUI:CreateWindow(WindowName)
     TabContainer.Position = UDim2.new(0, 27, 0, 53)
     TabContainer.Size = UDim2.new(0, 134, 0, 243)
     TabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
-    TabContainer.ScrollBarThickness = 0
+    TabContainer.ScrollBarThickness = 2
     TabContainer.ClipsDescendants = true 
     TabContainer.ZIndex = 5
     TabContainer.Parent = WindowRoot
 
     local TabListLayout = Instance.new("UIListLayout")
-    TabListLayout.Padding = UDim.new(0, 0)
+    TabListLayout.Padding = UDim.new(0, 2)
     TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     TabListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     TabListLayout.Parent = TabContainer
@@ -973,15 +973,15 @@ function ArexansUI:CreateWindow(WindowName)
 
         local ContentLayout = Instance.new("UIListLayout")
         ContentLayout.Name = "RowsLayout"
-        ContentLayout.Padding = UDim.new(0, 0)
+        ContentLayout.Padding = UDim.new(0, 1)
         ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
         ContentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         ContentLayout.Parent = Content
 
         local currentRow = nil
         local currentColumn = 0
-        local ITEM_HEIGHT = 24
-        local ITEM_GAP = 0
+        local ITEM_HEIGHT = 27
+        local ITEM_GAP = 3
         local function GetItemParent()
             if not currentRow or currentColumn >= 2 then
                 currentRow = Instance.new("Frame")
@@ -1006,7 +1006,7 @@ function ArexansUI:CreateWindow(WindowName)
             local slot = Instance.new("Frame")
             slot.Name = "ItemSlot"
             slot.BackgroundTransparency = 1
-            slot.Size = UDim2.new(0.5, 0, 1, 0)
+            slot.Size = UDim2.new(0.5, -(ITEM_GAP / 2), 1, 0)
             slot.ZIndex = 20
             slot.LayoutOrder = currentColumn + 1
             slot.Parent = currentRow
@@ -1024,7 +1024,7 @@ function ArexansUI:CreateWindow(WindowName)
             Category.Name = "Category_" .. tostring(title):gsub("%s+", "_")
             Category.Image = GetLocalAsset("containers/section_header.png")
             Category.BackgroundTransparency = 1
-            Category.Size = UDim2.new(1, -2, 0, 18)
+            Category.Size = UDim2.new(1, 0, 0, 18)
             Category.ScaleType = Enum.ScaleType.Stretch
             Category.ZIndex = 40
             Category.Parent = Content
@@ -1177,8 +1177,8 @@ function ArexansUI:CreateWindow(WindowName)
             local Holder = Instance.new("Frame")
             Holder.Name = DropdownName .. "_Dropdown"
             Holder.BackgroundTransparency = 1
-            Holder.Size = UDim2.new(1, 0, 0, 28)
-            Holder.ZIndex = 30
+            Holder.Size = UDim2.new(1, 0, 0, 30)
+            Holder.ZIndex = 50
             Holder.Parent = GetItemParent()
 
             local Button = Instance.new("ImageButton")
@@ -1733,31 +1733,29 @@ function ArexansUI:CreateWindow(WindowName)
             local value = math.clamp(tonumber(Default) or Min, Min, Max)
             Callback = Callback or function() end
 
-            local Holder = Instance.new("ImageLabel")
+            local Holder = Instance.new("Frame")
             Holder.Name = SliderName .. "_Slider"
-            Holder.Image = GetLocalAsset("containers/panel.png")
             Holder.BackgroundTransparency = 1
-            Holder.Size = UDim2.new(1, -2, 0, 36)
-            Holder.ScaleType = Enum.ScaleType.Stretch
+            Holder.Size = UDim2.new(1, 0, 0, 28)
             Holder.ZIndex = 30
             Holder.Parent = GetItemParent()
 
             local Title = Instance.new("TextLabel")
             Title.BackgroundTransparency = 1
             Title.Position = UDim2.new(0, 10, 0, 0)
-            Title.Size = UDim2.new(0.52, 0, 0, 18)
+            Title.Size = UDim2.new(0.52, 0, 1, 0)
             Title.Font = Enum.Font.GothamBold
             Title.Text = SliderName
             Title.TextColor3 = Color3.fromRGB(240, 250, 255)
-            Title.TextSize = 10
+            Title.TextSize = 9
             Title.TextXAlignment = Enum.TextXAlignment.Left
             Title.ZIndex = 31
             Title.Parent = Holder
 
             local Track = Instance.new("Frame")
             Track.BackgroundTransparency = 1
-            Track.Position = UDim2.new(0.05, 0, 0, 22)
-            Track.Size = UDim2.new(0.9, 0, 0, 6)
+            Track.Position = UDim2.new(0.52, 0, 0.5, -3)
+            Track.Size = UDim2.new(0.36, 0, 0, 6)
             Track.ZIndex = 31
             Track.Parent = Holder
 
@@ -1782,18 +1780,18 @@ function ArexansUI:CreateWindow(WindowName)
             Knob.Image = GetLocalAsset("controls/slider_knob.png")
             Knob.AnchorPoint = Vector2.new(0.5, 0.5)
             Knob.Position = UDim2.new((value - Min) / (Max - Min), 0, 0.5, 0)
-            Knob.Size = UDim2.new(0, 20, 0, 20)
+            Knob.Size = UDim2.new(0, 12, 0, 12)
             Knob.ZIndex = 33
             Knob.Parent = Track
 
             local Value = Instance.new("TextLabel")
             Value.BackgroundTransparency = 1
-            Value.Position = UDim2.new(0.52, 0, 0, 0)
-            Value.Size = UDim2.new(0.43, -6, 0, 18)
+            Value.Position = UDim2.new(0.89, 0, 0, 0)
+            Value.Size = UDim2.new(0.11, -6, 1, 0)
             Value.Font = Enum.Font.GothamBold
             Value.Text = tostring(math.floor(value))
             Value.TextColor3 = Color3.fromRGB(225, 242, 255)
-            Value.TextSize = 10
+            Value.TextSize = 8
             Value.TextXAlignment = Enum.TextXAlignment.Right
             Value.ZIndex = 31
             Value.Parent = Holder
@@ -1841,10 +1839,11 @@ function ArexansUI:CreateWindow(WindowName)
             ESPHolder.Name = ESPName .. "_ESP"
             ESPHolder.Image = GetLocalAsset("containers/panel.png")
             ESPHolder.BackgroundTransparency = 1
-            ESPHolder.Size = UDim2.new(1, -2, 0, 75)
+            ESPHolder.Size = UDim2.new(1, -10, 0, 95)
+            ESPHolder.Position = UDim2.new(0, 5, 0, 0)
             ESPHolder.ScaleType = Enum.ScaleType.Stretch
             ESPHolder.ZIndex = 30
-            ESPHolder.Parent = Content
+            ESPHolder.Parent = GetItemParent()
 
             local Title = Instance.new("TextLabel")
             Title.BackgroundTransparency = 1
@@ -1902,7 +1901,7 @@ function ArexansUI:CreateWindow(WindowName)
                 end)
             end
 
-            local function CreateColorPicker(yPos, name, colorList, callback)
+            local function CreateColorPicker(yPos, name, defaultColor, callback)
                 local cHolder = Instance.new("Frame")
                 cHolder.BackgroundTransparency = 1
                 cHolder.Size = UDim2.new(0.48, 0, 0, 18)
@@ -1921,10 +1920,11 @@ function ArexansUI:CreateWindow(WindowName)
                 cLabel.ZIndex = 31
                 cLabel.Parent = cHolder
 
-                local cp = Instance.new("Frame")
+                local cp = Instance.new("ImageButton")
                 cp.Size = UDim2.new(0.5, 0, 0.8, 0)
                 cp.Position = UDim2.new(0.5, 0, 0.1, 0)
-                cp.BackgroundColor3 = colorList[1] or Color3.fromRGB(255, 0, 0)
+                cp.Image = GetLocalAsset("hue_gradient.png")
+                cp.BackgroundColor3 = defaultColor or Color3.fromRGB(255, 0, 0)
                 cp.BorderSizePixel = 0
                 cp.ZIndex = 31
                 cp.Parent = cHolder
@@ -1933,27 +1933,24 @@ function ArexansUI:CreateWindow(WindowName)
                 uic.CornerRadius = UDim.new(0, 4)
                 uic.Parent = cp
 
-                local btn = Instance.new("TextButton")
-                btn.BackgroundTransparency = 1
-                btn.Size = UDim2.new(1, 0, 1, 0)
-                btn.Text = ""
-                btn.ZIndex = 32
-                btn.Parent = cHolder
-
-                local idx = 1
-                btn.MouseButton1Click:Connect(function()
-                    idx = idx + 1
-                    if idx > #colorList then idx = 1 end
-                    cp.BackgroundColor3 = colorList[idx]
-                    callback(colorList[idx])
+                -- Simple hue cycle for demo purposes, as we lack a full ColorPicker UI window currently
+                local hue = 0
+                cp.MouseButton1Click:Connect(function()
+                    hue = hue + 0.1
+                    if hue > 1 then hue = 0 end
+                    local color = Color3.fromHSV(hue, 1, 1)
+                    cp.BackgroundColor3 = color
+                    callback(color)
                 end)
             end
 
             CreateMiniToggle(25, "Boxes", false, function(v) end)
             CreateMiniToggle(45, "Names", false, function(v) end)
+            CreateMiniToggle(65, "Health Bar", false, function(v) end)
 
-            CreateColorPicker(25, "Enemy Color", {Color3.fromRGB(255,50,50), Color3.fromRGB(255,150,50), Color3.fromRGB(200,0,0)}, function(v) end)
-            CreateColorPicker(45, "Team Color", {Color3.fromRGB(50,255,50), Color3.fromRGB(50,150,255), Color3.fromRGB(0,200,0)}, function(v) end)
+            CreateColorPicker(25, "Enemy Color", Color3.fromRGB(255,50,50), function(v) end)
+            CreateColorPicker(45, "Team Color", Color3.fromRGB(50,255,50), function(v) end)
+            CreateColorPicker(65, "Neutral Color", Color3.fromRGB(255,255,255), function(v) end)
 
             return {}
         end
@@ -1981,15 +1978,8 @@ end
 
 local Window = ArexansUI:CreateWindow("Arexans Hub")
 
--- HOME: dashboard card, profile, camera, server, character.
+-- HOME: Empty as requested
 local HomeTab = Window:CreateTab("Home")
-HomeTab:CreateCategory("AREXANS DASHBOARD")
-HomeTab:CreateProfileCard()
-HomeTab:CreateCameraCard()
-HomeTab:CreateServerCard()
-HomeTab:CreateCharacterCard()
-HomeTab:CreateCategory("QUICK INFO")
-HomeTab:CreateLabel("Dashboard aktif • semua data card diperbarui realtime.")
 
 -- MAIN: fitur utama tetap tersedia dan tersusun di dalam satu panel penuh.
 local MainTab = Window:CreateTab("Main")
@@ -2016,13 +2006,7 @@ MainTab:CreateButton("Start Farm", function() print("Start Farm") end)
 MainTab:CreateButton("Stop Farm", function() print("Stop Farm") end)
 
 -- SETTINGS
-
-local VisualsTab = Window:CreateTab("Visuals")
-VisualsTab:CreateCategory("PLAYER ESP")
-VisualsTab:CreateESP("Player")
-
 local SettingsTab = Window:CreateTab("Settings")
-
 SettingsTab:CreateCategory("PLAYER & ESP")
 SettingsTab:CreateToggle("Anti AFK", true, function(Value) print("Anti AFK:", Value) end)
 SettingsTab:CreateToggle("ESP Players", false, function(Value) print("ESP Status:", Value) end)
