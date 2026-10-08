@@ -790,7 +790,9 @@ function ArexansUI:CreateWindow(WindowName)
     -- Posisi dikembalikan sedikit dari versi sebelumnya agar tidak menembus area kepala/tangan humanoid.
     -- Tetap cukup tinggi untuk mengikuti bagian atas frame tanpa terpotong.
     TabContainer.Position = UDim2.new(0, 27, 0, 53)
-    TabContainer.Size = UDim2.new(0, 134, 0, 243) 
+    TabContainer.Size = UDim2.new(0, 134, 0, 230)
+    TabContainer.ScrollingDirection = Enum.ScrollingDirection.Y
+    TabContainer.Active = true
     TabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
     TabContainer.ScrollBarThickness = 0
     TabContainer.ClipsDescendants = true 
@@ -804,9 +806,10 @@ function ArexansUI:CreateWindow(WindowName)
     TabListLayout.Parent = TabContainer
     
     -- Manually update CanvasSize instead of AutomaticCanvasSize (memory guideline)
-    TabListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        TabContainer.CanvasSize = UDim2.new(0, 0, 0, TabListLayout.AbsoluteContentSize.Y)
-    end)
+    local function UpdateTabCanvas()
+        TabContainer.CanvasSize = UDim2.new(0, 0, 0, TabListLayout.AbsoluteContentSize.Y + 10)
+    end
+    TabListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(UpdateTabCanvas)
 
     -- AREA FITUR KANAN.
     -- Sengaja dibuat lebih kecil dari window_frame agar TIDAK PERNAH
@@ -934,6 +937,8 @@ function ArexansUI:CreateWindow(WindowName)
         TabText.ZIndex = 11
         TabText.Parent = TabButton
 
+        UpdateTabCanvas()
+
         -- Area Halaman: toggle dibagi menjadi 2 kolom agar panel tidak terlalu panjang.
         local Page = Instance.new("ScrollingFrame")
         Page.Name = TabName .. "_Page"
@@ -1007,14 +1012,6 @@ function ArexansUI:CreateWindow(WindowName)
             slot.LayoutOrder = currentColumn + 1
             slot.Parent = currentRow
 
-            local SlotBg = Instance.new("ImageLabel")
-            SlotBg.Name = "SlotBackground"
-            SlotBg.Image = GetLocalAsset("long_horizonal_box.png")
-            SlotBg.BackgroundTransparency = 1
-            SlotBg.Size = UDim2.fromScale(1, 1)
-            SlotBg.ScaleType = Enum.ScaleType.Stretch
-            SlotBg.ZIndex = 19
-            SlotBg.Parent = slot
 
             currentColumn += 1
             return slot
@@ -1052,10 +1049,13 @@ function ArexansUI:CreateWindow(WindowName)
             return Category
         end
 
-        ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            local contentHeight = ContentLayout.AbsoluteContentSize.Y + 6
-            Page.CanvasSize = UDim2.new(0, 0, 0, math.max(Page.AbsoluteSize.Y - 4, contentHeight))
-        end)
+        local function UpdatePageCanvas()
+            local contentHeight = ContentLayout.AbsoluteContentSize.Y + 10
+            local minHeight = Page.AbsoluteSize.Y > 0 and Page.AbsoluteSize.Y or 220
+            Page.CanvasSize = UDim2.new(0, 0, 0, math.max(minHeight, contentHeight + 80))
+        end
+        ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(UpdatePageCanvas)
+        Page:GetPropertyChangedSignal("AbsoluteSize"):Connect(UpdatePageCanvas)
 
         if FirstTab then
             TabButton.Image = GetLocalAsset("navigation/tab_selected.png")
@@ -1314,9 +1314,9 @@ function ArexansUI:CreateWindow(WindowName)
                 Button.ImageTransparency = 1
 
                 -- Dropdown tetap berada DI DALAM area Page.
-                Button.ZIndex = 31
-                Label.ZIndex = 32
-                ValueLabel.ZIndex = 32
+                Button.ZIndex = 45
+                Label.ZIndex = 46
+                ValueLabel.ZIndex = 46
 
                 task.defer(function()
                     if not Page.Visible or not Holder.Parent then return end
@@ -1329,19 +1329,10 @@ function ArexansUI:CreateWindow(WindowName)
                     local spaceDown = math.max(0, pageBottom - holderBottom - 2)
                     local spaceUp = math.max(0, holderTop - pageTop - 2)
 
-                    if spaceDown >= 32 or spaceDown >= spaceUp then
-                        local visibleHeight = math.min(desiredHeight, math.max(32, spaceDown))
-                        ListPanel.Position = UDim2.new(0, 0, 0, 0)
-                        ListPanel.Size = UDim2.new(1, 0, 0, visibleHeight)
-                        List.Position = UDim2.new(0, 8, 0, 30)
-                        List.Size = UDim2.new(1, -16, 1, -35)
-                    else
-                        local visibleHeight = math.min(desiredHeight, math.max(32, spaceUp))
-                        ListPanel.Position = UDim2.new(0, 0, 0, -visibleHeight)
-                        ListPanel.Size = UDim2.new(1, 0, 0, visibleHeight)
-                        List.Position = UDim2.new(0, 8, 0, 5)
-                        List.Size = UDim2.new(1, -16, 1, -10)
-                    end
+                    ListPanel.Position = UDim2.new(0, 0, 0, 0)
+                    ListPanel.Size = UDim2.new(1, 0, 0, desiredHeight)
+                    List.Position = UDim2.new(0, 8, 0, 30)
+                    List.Size = UDim2.new(1, -16, 1, -35)
 
                     List.CanvasSize = UDim2.new(0, 0, 0, #Options * 18)
                     ListPanel.Visible = true
