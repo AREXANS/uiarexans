@@ -247,50 +247,31 @@ local function GetLocalAsset(path)
     return "rbxasset://" .. localPath
 end
 
--- Download all assets concurrently, but block execution until all are finished
--- so that UI elements don't slowly pop in one by one.
-local function PrefetchAllAssets()
+-- Fast + safe asset prefetch.
+-- Asset download tidak lagi dilakukan satu-per-satu secara blocking.
+-- Beberapa worker berjalan paralel, sementara UI tetap boleh dibuat segera.
+local function PrefetchAsset(path)
     if not (isfile and writefile) then return end
+    local normalizedPath = string.gsub(path, "/", "_")
+    local localPath = FolderName .. "/" .. normalizedPath
+    if isfile(localPath) then return end
 
-    local missingAssets = {}
-    for _, path in ipairs(AssetList) do
-        local normalizedPath = string.gsub(path, "/", "_")
-        local localPath = FolderName .. "/" .. normalizedPath
-        if not isfile(localPath) then
-            table.insert(missingAssets, {path = path, localPath = localPath})
+    pcall(function()
+        local data = game:HttpGet(BaseURL .. path)
+        if data and #data > 0 and not isfile(localPath) then
+            writefile(localPath, data)
         end
-    end
-
-    if #missingAssets == 0 then return end
-
-    local completed = 0
-    local target = #missingAssets
-    local bindable = Instance.new("BindableEvent")
-
-    local PREFETCH_WORKERS = 15
-    for worker = 1, PREFETCH_WORKERS do
-        task.spawn(function()
-            for index = worker, target, PREFETCH_WORKERS do
-                local assetInfo = missingAssets[index]
-                pcall(function()
-                    local data = game:HttpGet(BaseURL .. assetInfo.path)
-                    if data and #data > 0 and not isfile(assetInfo.localPath) then
-                        writefile(assetInfo.localPath, data)
-                    end
-                end)
-                completed = completed + 1
-                if completed >= target then
-                    bindable:Fire()
-                end
-            end
-        end)
-    end
-
-    bindable.Event:Wait()
-    bindable:Destroy()
+    end)
 end
 
-PrefetchAllAssets()
+local PREFETCH_WORKERS = 10
+for worker = 1, PREFETCH_WORKERS do
+    task.spawn(function()
+        for index = worker, #AssetList, PREFETCH_WORKERS do
+            PrefetchAsset(AssetList[index])
+        end
+    end)
+end
 
 
 function ArexansUI:CreateWindow(WindowName)
@@ -455,7 +436,30 @@ function ArexansUI:CreateWindow(WindowName)
     -- Tidak ada tombol/ornamen tambahan di luar asset utama.
     local dragLocked = false
 
-
+    -- Critical UI assets dipanaskan secara paralel agar first render cepat.
+    -- Asset lain tetap diprefetch oleh worker di atas tanpa menahan pembuatan UI.
+    task.spawn(function()
+        local criticalAssets = {
+            "window/window_background.png",
+            "window/window_frame.png",
+            "window/window_humanoid.png",
+            "window/window_humanoid_sleep.png",
+            "logo.png",
+            "navigation/tab_disabled.png",
+            "navigation/tab_selected.png",
+            "containers/panel2.png",
+            "containers/section_header.png",
+            "button.png",
+            "button_selected.png",
+            "dropdown_before.png",
+            "dropdown_after.png"
+        }
+        for _, assetPath in ipairs(criticalAssets) do
+            task.spawn(function()
+                pcall(function() GetLocalAsset(assetPath) end)
+            end)
+        end
+    end)
 
     -- 3. ROOT WINDOW + ASSET LAYERS
     -- Root memakai ukuran EXACT window_frame.png.
@@ -790,9 +794,7 @@ function ArexansUI:CreateWindow(WindowName)
     -- Posisi dikembalikan sedikit dari versi sebelumnya agar tidak menembus area kepala/tangan humanoid.
     -- Tetap cukup tinggi untuk mengikuti bagian atas frame tanpa terpotong.
     TabContainer.Position = UDim2.new(0, 27, 0, 53)
-    TabContainer.Size = UDim2.new(0, 134, 0, 230)
-    TabContainer.ScrollingDirection = Enum.ScrollingDirection.Y
-    TabContainer.Active = true
+    TabContainer.Size = UDim2.new(0, 134, 0, 243)
     TabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
     TabContainer.ScrollBarThickness = 0
     TabContainer.ClipsDescendants = true 
@@ -800,16 +802,15 @@ function ArexansUI:CreateWindow(WindowName)
     TabContainer.Parent = WindowRoot
 
     local TabListLayout = Instance.new("UIListLayout")
-    TabListLayout.Padding = UDim.new(0, 2)
+    TabListLayout.Padding = UDim.new(0, 0)
     TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
     TabListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     TabListLayout.Parent = TabContainer
     
     -- Manually update CanvasSize instead of AutomaticCanvasSize (memory guideline)
-    local function UpdateTabCanvas()
-        TabContainer.CanvasSize = UDim2.new(0, 0, 0, TabListLayout.AbsoluteContentSize.Y + 10)
-    end
-    TabListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(UpdateTabCanvas)
+    TabListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        TabContainer.CanvasSize = UDim2.new(0, 0, 0, TabListLayout.AbsoluteContentSize.Y)
+    end)
 
     -- AREA FITUR KANAN.
     -- Sengaja dibuat lebih kecil dari window_frame agar TIDAK PERNAH
@@ -937,8 +938,6 @@ function ArexansUI:CreateWindow(WindowName)
         TabText.ZIndex = 11
         TabText.Parent = TabButton
 
-        UpdateTabCanvas()
-
         -- Area Halaman: toggle dibagi menjadi 2 kolom agar panel tidak terlalu panjang.
         local Page = Instance.new("ScrollingFrame")
         Page.Name = TabName .. "_Page"
@@ -974,15 +973,15 @@ function ArexansUI:CreateWindow(WindowName)
 
         local ContentLayout = Instance.new("UIListLayout")
         ContentLayout.Name = "RowsLayout"
-        ContentLayout.Padding = UDim.new(0, 1)
+        ContentLayout.Padding = UDim.new(0, 0)
         ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
         ContentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         ContentLayout.Parent = Content
 
         local currentRow = nil
         local currentColumn = 0
-        local ITEM_HEIGHT = 27
-        local ITEM_GAP = 3
+        local ITEM_HEIGHT = 24
+        local ITEM_GAP = 0
         local function GetItemParent()
             if not currentRow or currentColumn >= 2 then
                 currentRow = Instance.new("Frame")
@@ -1007,12 +1006,10 @@ function ArexansUI:CreateWindow(WindowName)
             local slot = Instance.new("Frame")
             slot.Name = "ItemSlot"
             slot.BackgroundTransparency = 1
-            slot.Size = UDim2.new(0.5, -(ITEM_GAP / 2), 1, 0)
+            slot.Size = UDim2.new(0.5, 0, 1, 0)
             slot.ZIndex = 20
             slot.LayoutOrder = currentColumn + 1
             slot.Parent = currentRow
-
-
             currentColumn += 1
             return slot
         end
@@ -1025,9 +1022,9 @@ function ArexansUI:CreateWindow(WindowName)
 
             local Category = Instance.new("ImageLabel")
             Category.Name = "Category_" .. tostring(title):gsub("%s+", "_")
-            Category.Image = GetLocalAsset("long_horizonal_box.png")
+            Category.Image = GetLocalAsset("containers/section_header.png")
             Category.BackgroundTransparency = 1
-            Category.Size = UDim2.new(1, 0, 0, 18)
+            Category.Size = UDim2.new(1, -2, 0, 18)
             Category.ScaleType = Enum.ScaleType.Stretch
             Category.ZIndex = 40
             Category.Parent = Content
@@ -1049,13 +1046,10 @@ function ArexansUI:CreateWindow(WindowName)
             return Category
         end
 
-        local function UpdatePageCanvas()
-            local contentHeight = ContentLayout.AbsoluteContentSize.Y + 10
-            local minHeight = Page.AbsoluteSize.Y > 0 and Page.AbsoluteSize.Y or 220
-            Page.CanvasSize = UDim2.new(0, 0, 0, math.max(minHeight, contentHeight + 80))
-        end
-        ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(UpdatePageCanvas)
-        Page:GetPropertyChangedSignal("AbsoluteSize"):Connect(UpdatePageCanvas)
+        ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            local contentHeight = ContentLayout.AbsoluteContentSize.Y + 6
+            Page.CanvasSize = UDim2.new(0, 0, 0, math.max(Page.AbsoluteSize.Y - 4, contentHeight))
+        end)
 
         if FirstTab then
             TabButton.Image = GetLocalAsset("navigation/tab_selected.png")
@@ -1255,45 +1249,32 @@ function ArexansUI:CreateWindow(WindowName)
             local function CloseList()
                 open = false
                 ListPanel.Visible = false
-                Button.ImageTransparency = 0
                 Button.ZIndex = 31
                 Label.ZIndex = 32
                 ValueLabel.ZIndex = 32
             end
 
             for index, option in ipairs(Options) do
-                local OptionBg = Instance.new("ImageLabel")
-                OptionBg.Name = "OptionBg_" .. index
-                OptionBg.Image = GetLocalAsset("dropdown_selected_bg.png")
-                OptionBg.BackgroundTransparency = 1
-                OptionBg.Size = UDim2.new(1, -20, 0, 18)
-                OptionBg.Position = UDim2.new(0, 10, 0, 0)
-                OptionBg.ScaleType = Enum.ScaleType.Stretch
-                OptionBg.ZIndex = 45
-                OptionBg.Parent = List
-
                 local OptionButton = Instance.new("TextButton")
                 OptionButton.Name = "Option_" .. index
                 OptionButton.BackgroundTransparency = 1
                 OptionButton.BorderSizePixel = 0
                 OptionButton.AutoButtonColor = false
-                OptionButton.Size = UDim2.fromScale(1, 1)
-                OptionButton.Position = UDim2.fromScale(0, 0)
+                OptionButton.Size = UDim2.new(1, -26, 0, 18)
+                OptionButton.Position = UDim2.new(0, 10, 0, 0)
                 OptionButton.Font = Enum.Font.GothamBold
                 OptionButton.Text = tostring(option)
                 OptionButton.TextColor3 = Color3.fromRGB(235, 246, 255)
                 OptionButton.TextSize = 9
-                OptionButton.TextXAlignment = Enum.TextXAlignment.Center
+                OptionButton.TextXAlignment = Enum.TextXAlignment.Left
                 OptionButton.ZIndex = 46
-                OptionButton.Parent = OptionBg
+                OptionButton.Parent = List
 
                 OptionButton.MouseEnter:Connect(function()
                     OptionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-                    OptionBg.ImageColor3 = Color3.fromRGB(200, 200, 200)
                 end)
                 OptionButton.MouseLeave:Connect(function()
                     OptionButton.TextColor3 = Color3.fromRGB(235, 246, 255)
-                    OptionBg.ImageColor3 = Color3.fromRGB(255, 255, 255)
                 end)
                 OptionButton.MouseButton1Click:Connect(function()
                     selected = option
@@ -1310,13 +1291,12 @@ function ArexansUI:CreateWindow(WindowName)
                     return
                 end
 
-                -- Hide before state to prevent overlap
-                Button.ImageTransparency = 1
-
                 -- Dropdown tetap berada DI DALAM area Page.
-                Button.ZIndex = 45
-                Label.ZIndex = 46
-                ValueLabel.ZIndex = 46
+                -- ZIndex sengaja di bawah frame (50) dan humanoid (51),
+                -- sehingga asset bingkai/humanoid selalu menjadi lapisan terdepan.
+                Button.ZIndex = 31
+                Label.ZIndex = 32
+                ValueLabel.ZIndex = 32
 
                 task.defer(function()
                     if not Page.Visible or not Holder.Parent then return end
@@ -1329,10 +1309,21 @@ function ArexansUI:CreateWindow(WindowName)
                     local spaceDown = math.max(0, pageBottom - holderBottom - 2)
                     local spaceUp = math.max(0, holderTop - pageTop - 2)
 
-                    ListPanel.Position = UDim2.new(0, 0, 0, 0)
-                    ListPanel.Size = UDim2.new(1, 0, 0, desiredHeight)
-                    List.Position = UDim2.new(0, 8, 0, 30)
-                    List.Size = UDim2.new(1, -16, 1, -35)
+                    -- Utamakan arah yang punya ruang paling besar.
+                    -- Panel tetap clipped oleh Page sehingga tidak pernah keluar frame.
+                    if spaceDown >= 32 or spaceDown >= spaceUp then
+                        local visibleHeight = math.min(desiredHeight, math.max(32, spaceDown))
+                        ListPanel.Position = UDim2.new(0, 0, 0, 0)
+                        ListPanel.Size = UDim2.new(1, 0, 0, visibleHeight)
+                        List.Position = UDim2.new(0, 8, 0, 30)
+                        List.Size = UDim2.new(1, -16, 1, -35)
+                    else
+                        local visibleHeight = math.min(desiredHeight, math.max(32, spaceUp))
+                        ListPanel.Position = UDim2.new(0, 0, 0, -visibleHeight)
+                        ListPanel.Size = UDim2.new(1, 0, 0, visibleHeight)
+                        List.Position = UDim2.new(0, 8, 0, 5)
+                        List.Size = UDim2.new(1, -16, 1, -10)
+                    end
 
                     List.CanvasSize = UDim2.new(0, 0, 0, #Options * 18)
                     ListPanel.Visible = true
@@ -1497,7 +1488,7 @@ function ArexansUI:CreateWindow(WindowName)
             local slot = GetItemParent()
             local Card = Instance.new("ImageLabel")
             Card.Name = "Card_" .. tostring(CardTitle):gsub("%s+", "_")
-            Card.Image = GetLocalAsset(Options.Asset or "containers/panel.png")
+            Card.Image = GetLocalAsset(Options.Asset or "player/player_card.png")
             Card.BackgroundTransparency = 1
             Card.Size = UDim2.new(CardWidthMode, CardWidthMode == 1 and 0 or -1, 0, CardHeight)
             Card.ScaleType = Enum.ScaleType.Stretch
@@ -1577,7 +1568,7 @@ function ArexansUI:CreateWindow(WindowName)
                 "Roblox account • realtime",
                 "icons/user_crown.png",
                 "Loading profile...",
-                {Asset = "containers/panel.png", Height = 88}
+                {Asset = "player/player_card.png", Height = 88}
             )
 
             local Avatar = Instance.new("ImageLabel")
@@ -1591,7 +1582,7 @@ function ArexansUI:CreateWindow(WindowName)
 
             local AvatarFrame = Instance.new("ImageLabel")
             AvatarFrame.Name = "AvatarFrame"
-            AvatarFrame.Image = GetLocalAsset("player/avatar_frame.png")
+            AvatarFrame.Image = GetLocalAsset("frame_profile.png")
             AvatarFrame.BackgroundTransparency = 1
             AvatarFrame.Position = Avatar.Position
             AvatarFrame.Size = Avatar.Size
@@ -1630,7 +1621,7 @@ function ArexansUI:CreateWindow(WindowName)
                 "Realtime workspace camera",
                 "icons/camera_energy.png",
                 "Reading camera...",
-                {Asset = "containers/panel.png", Height = 88}
+                {Asset = "containers/card.png", Height = 88}
             )
 
             local function UpdateCamera()
@@ -1667,7 +1658,7 @@ function ArexansUI:CreateWindow(WindowName)
                 "Realtime Roblox server",
                 "icons/server_global.png",
                 "Reading server...",
-                {Asset = "containers/panel.png", Height = 88}
+                {Asset = "player/server_card.png", Height = 88}
             )
 
             local function UpdateServer()
@@ -1701,7 +1692,7 @@ function ArexansUI:CreateWindow(WindowName)
                 "Local player realtime",
                 "icons/visibility_eye.png",
                 "Reading character...",
-                {Asset = "containers/panel.png", Height = 88}
+                {Asset = "containers/card.png", Height = 88}
             )
 
             local function UpdateCharacter()
@@ -1742,29 +1733,31 @@ function ArexansUI:CreateWindow(WindowName)
             local value = math.clamp(tonumber(Default) or Min, Min, Max)
             Callback = Callback or function() end
 
-            local Holder = Instance.new("Frame")
+            local Holder = Instance.new("ImageLabel")
             Holder.Name = SliderName .. "_Slider"
+            Holder.Image = GetLocalAsset("containers/panel.png")
             Holder.BackgroundTransparency = 1
-            Holder.Size = UDim2.new(1, 0, 0, 28)
+            Holder.Size = UDim2.new(1, -2, 0, 36)
+            Holder.ScaleType = Enum.ScaleType.Stretch
             Holder.ZIndex = 30
             Holder.Parent = GetItemParent()
 
             local Title = Instance.new("TextLabel")
             Title.BackgroundTransparency = 1
             Title.Position = UDim2.new(0, 10, 0, 0)
-            Title.Size = UDim2.new(0.52, 0, 1, 0)
+            Title.Size = UDim2.new(0.52, 0, 0, 18)
             Title.Font = Enum.Font.GothamBold
             Title.Text = SliderName
             Title.TextColor3 = Color3.fromRGB(240, 250, 255)
-            Title.TextSize = 9
+            Title.TextSize = 10
             Title.TextXAlignment = Enum.TextXAlignment.Left
             Title.ZIndex = 31
             Title.Parent = Holder
 
             local Track = Instance.new("Frame")
             Track.BackgroundTransparency = 1
-            Track.Position = UDim2.new(0.52, 0, 0.5, -4)
-            Track.Size = UDim2.new(0.36, 0, 0, 8)
+            Track.Position = UDim2.new(0.05, 0, 0, 22)
+            Track.Size = UDim2.new(0.9, 0, 0, 6)
             Track.ZIndex = 31
             Track.Parent = Holder
 
@@ -1789,18 +1782,18 @@ function ArexansUI:CreateWindow(WindowName)
             Knob.Image = GetLocalAsset("controls/slider_knob.png")
             Knob.AnchorPoint = Vector2.new(0.5, 0.5)
             Knob.Position = UDim2.new((value - Min) / (Max - Min), 0, 0.5, 0)
-            Knob.Size = UDim2.new(0, 16, 0, 16)
+            Knob.Size = UDim2.new(0, 20, 0, 20)
             Knob.ZIndex = 33
             Knob.Parent = Track
 
             local Value = Instance.new("TextLabel")
             Value.BackgroundTransparency = 1
-            Value.Position = UDim2.new(0.89, 0, 0, 0)
-            Value.Size = UDim2.new(0.11, -6, 1, 0)
+            Value.Position = UDim2.new(0.52, 0, 0, 0)
+            Value.Size = UDim2.new(0.43, -6, 0, 18)
             Value.Font = Enum.Font.GothamBold
             Value.Text = tostring(math.floor(value))
             Value.TextColor3 = Color3.fromRGB(225, 242, 255)
-            Value.TextSize = 8
+            Value.TextSize = 10
             Value.TextXAlignment = Enum.TextXAlignment.Right
             Value.ZIndex = 31
             Value.Parent = Holder
@@ -1840,6 +1833,131 @@ function ArexansUI:CreateWindow(WindowName)
             }
         end
 
+
+        function TabData:CreateESP(ESPName)
+            currentRow = nil
+            currentColumn = 2
+            local ESPHolder = Instance.new("ImageLabel")
+            ESPHolder.Name = ESPName .. "_ESP"
+            ESPHolder.Image = GetLocalAsset("containers/panel.png")
+            ESPHolder.BackgroundTransparency = 1
+            ESPHolder.Size = UDim2.new(1, -2, 0, 75)
+            ESPHolder.ScaleType = Enum.ScaleType.Stretch
+            ESPHolder.ZIndex = 30
+            ESPHolder.Parent = Content
+
+            local Title = Instance.new("TextLabel")
+            Title.BackgroundTransparency = 1
+            Title.Position = UDim2.new(0, 10, 0, 5)
+            Title.Size = UDim2.new(1, -20, 0, 18)
+            Title.Font = Enum.Font.GothamBold
+            Title.Text = ESPName .. " Configuration"
+            Title.TextColor3 = Color3.fromRGB(240, 250, 255)
+            Title.TextSize = 11
+            Title.TextXAlignment = Enum.TextXAlignment.Left
+            Title.ZIndex = 31
+            Title.Parent = ESPHolder
+
+            local function CreateMiniToggle(yPos, name, default, callback)
+                local tHolder = Instance.new("Frame")
+                tHolder.BackgroundTransparency = 1
+                tHolder.Size = UDim2.new(0.48, 0, 0, 18)
+                tHolder.Position = UDim2.new(0, 10, 0, yPos)
+                tHolder.ZIndex = 31
+                tHolder.Parent = ESPHolder
+
+                local tLabel = Instance.new("TextLabel")
+                tLabel.BackgroundTransparency = 1
+                tLabel.Size = UDim2.new(0.7, 0, 1, 0)
+                tLabel.Font = Enum.Font.Gotham
+                tLabel.Text = name
+                tLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+                tLabel.TextSize = 10
+                tLabel.TextXAlignment = Enum.TextXAlignment.Left
+                tLabel.ZIndex = 31
+                tLabel.Parent = tHolder
+
+                local tBox = Instance.new("ImageLabel")
+                tBox.BackgroundTransparency = 1
+                tBox.Image = GetLocalAsset("controls/toggle_off.png")
+                tBox.Size = UDim2.new(0, 18, 0, 18)
+                tBox.Position = UDim2.new(1, -18, 0, 0)
+                tBox.ZIndex = 31
+                tBox.Parent = tHolder
+
+                local state = default
+                if state then tBox.Image = GetLocalAsset("controls/toggle_on.png") end
+
+                local btn = Instance.new("TextButton")
+                btn.BackgroundTransparency = 1
+                btn.Size = UDim2.new(1, 0, 1, 0)
+                btn.Text = ""
+                btn.ZIndex = 32
+                btn.Parent = tHolder
+
+                btn.MouseButton1Click:Connect(function()
+                    state = not state
+                    tBox.Image = state and GetLocalAsset("controls/toggle_on.png") or GetLocalAsset("controls/toggle_off.png")
+                    callback(state)
+                end)
+            end
+
+            local function CreateColorPicker(yPos, name, colorList, callback)
+                local cHolder = Instance.new("Frame")
+                cHolder.BackgroundTransparency = 1
+                cHolder.Size = UDim2.new(0.48, 0, 0, 18)
+                cHolder.Position = UDim2.new(0.52, 0, 0, yPos)
+                cHolder.ZIndex = 31
+                cHolder.Parent = ESPHolder
+
+                local cLabel = Instance.new("TextLabel")
+                cLabel.BackgroundTransparency = 1
+                cLabel.Size = UDim2.new(0.5, 0, 1, 0)
+                cLabel.Font = Enum.Font.Gotham
+                cLabel.Text = name
+                cLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+                cLabel.TextSize = 10
+                cLabel.TextXAlignment = Enum.TextXAlignment.Left
+                cLabel.ZIndex = 31
+                cLabel.Parent = cHolder
+
+                local cp = Instance.new("Frame")
+                cp.Size = UDim2.new(0.5, 0, 0.8, 0)
+                cp.Position = UDim2.new(0.5, 0, 0.1, 0)
+                cp.BackgroundColor3 = colorList[1] or Color3.fromRGB(255, 0, 0)
+                cp.BorderSizePixel = 0
+                cp.ZIndex = 31
+                cp.Parent = cHolder
+
+                local uic = Instance.new("UICorner")
+                uic.CornerRadius = UDim.new(0, 4)
+                uic.Parent = cp
+
+                local btn = Instance.new("TextButton")
+                btn.BackgroundTransparency = 1
+                btn.Size = UDim2.new(1, 0, 1, 0)
+                btn.Text = ""
+                btn.ZIndex = 32
+                btn.Parent = cHolder
+
+                local idx = 1
+                btn.MouseButton1Click:Connect(function()
+                    idx = idx + 1
+                    if idx > #colorList then idx = 1 end
+                    cp.BackgroundColor3 = colorList[idx]
+                    callback(colorList[idx])
+                end)
+            end
+
+            CreateMiniToggle(25, "Boxes", false, function(v) end)
+            CreateMiniToggle(45, "Names", false, function(v) end)
+
+            CreateColorPicker(25, "Enemy Color", {Color3.fromRGB(255,50,50), Color3.fromRGB(255,150,50), Color3.fromRGB(200,0,0)}, function(v) end)
+            CreateColorPicker(45, "Team Color", {Color3.fromRGB(50,255,50), Color3.fromRGB(50,150,255), Color3.fromRGB(0,200,0)}, function(v) end)
+
+            return {}
+        end
+
         return TabData
     end
 
@@ -1865,6 +1983,13 @@ local Window = ArexansUI:CreateWindow("Arexans Hub")
 
 -- HOME: dashboard card, profile, camera, server, character.
 local HomeTab = Window:CreateTab("Home")
+HomeTab:CreateCategory("AREXANS DASHBOARD")
+HomeTab:CreateProfileCard()
+HomeTab:CreateCameraCard()
+HomeTab:CreateServerCard()
+HomeTab:CreateCharacterCard()
+HomeTab:CreateCategory("QUICK INFO")
+HomeTab:CreateLabel("Dashboard aktif • semua data card diperbarui realtime.")
 
 -- MAIN: fitur utama tetap tersedia dan tersusun di dalam satu panel penuh.
 local MainTab = Window:CreateTab("Main")
@@ -1891,7 +2016,13 @@ MainTab:CreateButton("Start Farm", function() print("Start Farm") end)
 MainTab:CreateButton("Stop Farm", function() print("Stop Farm") end)
 
 -- SETTINGS
+
+local VisualsTab = Window:CreateTab("Visuals")
+VisualsTab:CreateCategory("PLAYER ESP")
+VisualsTab:CreateESP("Player")
+
 local SettingsTab = Window:CreateTab("Settings")
+
 SettingsTab:CreateCategory("PLAYER & ESP")
 SettingsTab:CreateToggle("Anti AFK", true, function(Value) print("Anti AFK:", Value) end)
 SettingsTab:CreateToggle("ESP Players", false, function(Value) print("ESP Status:", Value) end)
