@@ -247,31 +247,50 @@ local function GetLocalAsset(path)
     return "rbxasset://" .. localPath
 end
 
--- Fast + safe asset prefetch.
--- Asset download tidak lagi dilakukan satu-per-satu secara blocking.
--- Beberapa worker berjalan paralel, sementara UI tetap boleh dibuat segera.
-local function PrefetchAsset(path)
+-- Download all assets concurrently, but block execution until all are finished
+-- so that UI elements don't slowly pop in one by one.
+local function PrefetchAllAssets()
     if not (isfile and writefile) then return end
-    local normalizedPath = string.gsub(path, "/", "_")
-    local localPath = FolderName .. "/" .. normalizedPath
-    if isfile(localPath) then return end
 
-    pcall(function()
-        local data = game:HttpGet(BaseURL .. path)
-        if data and #data > 0 and not isfile(localPath) then
-            writefile(localPath, data)
+    local missingAssets = {}
+    for _, path in ipairs(AssetList) do
+        local normalizedPath = string.gsub(path, "/", "_")
+        local localPath = FolderName .. "/" .. normalizedPath
+        if not isfile(localPath) then
+            table.insert(missingAssets, {path = path, localPath = localPath})
         end
-    end)
+    end
+
+    if #missingAssets == 0 then return end
+
+    local completed = 0
+    local target = #missingAssets
+    local bindable = Instance.new("BindableEvent")
+
+    local PREFETCH_WORKERS = 15
+    for worker = 1, PREFETCH_WORKERS do
+        task.spawn(function()
+            for index = worker, target, PREFETCH_WORKERS do
+                local assetInfo = missingAssets[index]
+                pcall(function()
+                    local data = game:HttpGet(BaseURL .. assetInfo.path)
+                    if data and #data > 0 and not isfile(assetInfo.localPath) then
+                        writefile(assetInfo.localPath, data)
+                    end
+                end)
+                completed = completed + 1
+                if completed >= target then
+                    bindable:Fire()
+                end
+            end
+        end)
+    end
+
+    bindable.Event:Wait()
+    bindable:Destroy()
 end
 
-local PREFETCH_WORKERS = 10
-for worker = 1, PREFETCH_WORKERS do
-    task.spawn(function()
-        for index = worker, #AssetList, PREFETCH_WORKERS do
-            PrefetchAsset(AssetList[index])
-        end
-    end)
-end
+PrefetchAllAssets()
 
 
 function ArexansUI:CreateWindow(WindowName)
@@ -436,30 +455,7 @@ function ArexansUI:CreateWindow(WindowName)
     -- Tidak ada tombol/ornamen tambahan di luar asset utama.
     local dragLocked = false
 
-    -- Critical UI assets dipanaskan secara paralel agar first render cepat.
-    -- Asset lain tetap diprefetch oleh worker di atas tanpa menahan pembuatan UI.
-    task.spawn(function()
-        local criticalAssets = {
-            "window/window_background.png",
-            "window/window_frame.png",
-            "window/window_humanoid.png",
-            "window/window_humanoid_sleep.png",
-            "logo.png",
-            "navigation/tab_disabled.png",
-            "navigation/tab_selected.png",
-            "containers/panel2.png",
-            "containers/section_header.png",
-            "button.png",
-            "button_selected.png",
-            "dropdown_before.png",
-            "dropdown_after.png"
-        }
-        for _, assetPath in ipairs(criticalAssets) do
-            task.spawn(function()
-                pcall(function() GetLocalAsset(assetPath) end)
-            end)
-        end
-    end)
+
 
     -- 3. ROOT WINDOW + ASSET LAYERS
     -- Root memakai ukuran EXACT window_frame.png.
