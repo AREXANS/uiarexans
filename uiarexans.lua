@@ -1216,7 +1216,7 @@ function ArexansUI:CreateWindow(WindowName)
             ValueLabel.ZIndex = 32
             ValueLabel.Parent = Button
 
-            local listHeight = math.min(96, math.max(32, #Options * 18 + 6))
+            local listHeight = math.min(96, math.max(32, #Options * 20 + 6))
             local ListPanel = Instance.new("ImageLabel")
             ListPanel.Name = "ExpandedPanel"
             ListPanel.Image = GetLocalAsset("dropdown_after.png")
@@ -1234,7 +1234,7 @@ function ArexansUI:CreateWindow(WindowName)
             List.BorderSizePixel = 0
             List.Position = UDim2.new(0, 8, 0, 30)
             List.Size = UDim2.new(1, -16, 1, -35)
-            List.CanvasSize = UDim2.new(0, 0, 0, #Options * 18)
+            List.CanvasSize = UDim2.new(0, 0, 0, #Options * 20)
             List.ScrollBarThickness = 0
             List.ScrollingDirection = Enum.ScrollingDirection.Y
             List.ZIndex = 45
@@ -1243,7 +1243,7 @@ function ArexansUI:CreateWindow(WindowName)
 
             local ListLayout = Instance.new("UIListLayout")
             ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-            ListLayout.Padding = UDim.new(0, 0)
+            ListLayout.Padding = UDim.new(0, 2)
             ListLayout.Parent = List
 
             local function CloseList()
@@ -1255,20 +1255,30 @@ function ArexansUI:CreateWindow(WindowName)
             end
 
             for index, option in ipairs(Options) do
+                local OptionHolder = Instance.new("ImageLabel")
+                OptionHolder.Name = "Holder_" .. index
+                OptionHolder.BackgroundTransparency = 1
+                OptionHolder.Image = GetLocalAsset("long_horizonal_box.png")
+                OptionHolder.ScaleType = Enum.ScaleType.Slice
+                OptionHolder.SliceCenter = Rect.new(4, 4, 252, 252)
+                OptionHolder.Size = UDim2.new(1, 0, 0, 18)
+                OptionHolder.ZIndex = 45
+                OptionHolder.Parent = List
+
                 local OptionButton = Instance.new("TextButton")
                 OptionButton.Name = "Option_" .. index
                 OptionButton.BackgroundTransparency = 1
                 OptionButton.BorderSizePixel = 0
                 OptionButton.AutoButtonColor = false
-                OptionButton.Size = UDim2.new(1, -26, 0, 18)
-                OptionButton.Position = UDim2.new(0, 10, 0, 0)
+                OptionButton.Size = UDim2.new(1, -12, 1, 0)
+                OptionButton.Position = UDim2.new(0, 6, 0, 0)
                 OptionButton.Font = Enum.Font.GothamBold
                 OptionButton.Text = tostring(option)
                 OptionButton.TextColor3 = Color3.fromRGB(235, 246, 255)
                 OptionButton.TextSize = 9
                 OptionButton.TextXAlignment = Enum.TextXAlignment.Left
                 OptionButton.ZIndex = 46
-                OptionButton.Parent = List
+                OptionButton.Parent = OptionHolder
 
                 OptionButton.MouseEnter:Connect(function()
                     OptionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1325,7 +1335,7 @@ function ArexansUI:CreateWindow(WindowName)
                         List.Size = UDim2.new(1, -16, 1, -10)
                     end
 
-                    List.CanvasSize = UDim2.new(0, 0, 0, #Options * 18)
+                    List.CanvasSize = UDim2.new(0, 0, 0, #Options * 20)
                     ListPanel.Visible = true
                 end)
             end)
@@ -1741,39 +1751,40 @@ function ArexansUI:CreateWindow(WindowName)
             Holder.ScaleType = Enum.ScaleType.Slice
             Holder.SliceCenter = Rect.new(4, 4, 252, 252)
             Holder.BackgroundTransparency = 1
-            Holder.Size = UDim2.new(1, -10, 0, 42)
+            Holder.Size = UDim2.new(1, -10, 0, 32)
             Holder.Position = UDim2.new(0, 5, 0, 0)
             Holder.ZIndex = 30
             Holder.Parent = GetItemParent()
 
             local Title = Instance.new("TextLabel")
             Title.BackgroundTransparency = 1
-            Title.Position = UDim2.new(0, 10, 0, 4)
-            Title.Size = UDim2.new(0.5, 0, 0, 14)
+            Title.Position = UDim2.new(0, 10, 0, 0)
+            Title.Size = UDim2.new(0.4, 0, 1, 0)
             Title.Font = Enum.Font.GothamBold
             Title.Text = SliderName
             Title.TextColor3 = Color3.fromRGB(240, 250, 255)
-            Title.TextSize = 11
+            Title.TextSize = 10
             Title.TextXAlignment = Enum.TextXAlignment.Left
             Title.ZIndex = 31
             Title.Parent = Holder
 
             local ValueLabel = Instance.new("TextLabel")
             ValueLabel.BackgroundTransparency = 1
-            ValueLabel.Position = UDim2.new(0.5, -10, 0, 4)
-            ValueLabel.Size = UDim2.new(0.5, 0, 0, 14)
+            ValueLabel.Position = UDim2.new(0.4, 0, 0, 0)
+            ValueLabel.Size = UDim2.new(0.1, 0, 1, 0)
             ValueLabel.Font = Enum.Font.Gotham
             ValueLabel.Text = tostring(value)
             ValueLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
             ValueLabel.TextSize = 10
-            ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+            ValueLabel.TextXAlignment = Enum.TextXAlignment.Center
             ValueLabel.ZIndex = 31
             ValueLabel.Parent = Holder
 
+            -- Place the track on the right side
             local Track = Instance.new("Frame")
             Track.BackgroundTransparency = 1
-            Track.Position = UDim2.new(0, 10, 0, 22)
-            Track.Size = UDim2.new(1, -20, 0, 12)
+            Track.Position = UDim2.new(0.55, 0, 0.5, -6)
+            Track.Size = UDim2.new(0.4, 0, 0, 12)
             Track.ZIndex = 31
             Track.Parent = Holder
 
