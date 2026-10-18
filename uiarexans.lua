@@ -9545,31 +9545,28 @@ pcall(function()
     -- ArexansUI_Assets/popup_scrollbar_thumb.png).
     local function ApplyServerScrollbarAsset()
         local getAsset = getcustomasset or getsynasset
-        -- Using the explicit path requested by the user, handling potential translation if needed
-        local thumbPath = "asset/popup/scrollbar_thumb.png"
+        local targetPath = "ArexansUI_Assets/popup_scrollbar_thumb.png"
 
-        -- In ArexansUI, local assets are sometimes prefixed with FolderName ("ArexansUI_Assets")
-        -- If the raw path doesn't exist, fallback to the normalized path
-        local normalizedPath = "ArexansUI_Assets/" .. string.gsub(thumbPath, "asset/", "")
-        normalizedPath = string.gsub(normalizedPath, "/", "_")
-
-        local targetPath = thumbPath
         local exists = false
-        pcall(function() exists = isfile(targetPath) end)
+        if isfile then pcall(function() exists = isfile(targetPath) end) end
 
-        if not exists then
-            targetPath = normalizedPath
-            pcall(function() exists = isfile(targetPath) end)
+        if getAsset and exists then
+            local ok, uri = pcall(getAsset, targetPath)
+            if ok and uri then
+                ServerFrame.ScrollBarImage = uri
+                ServerFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
+                return true
+            end
         end
 
-        if not (getAsset and exists) then return false end
-
-        local ok, uri = pcall(getAsset, targetPath)
-        if ok and uri then
+        -- Fallback to Window method if standard executor functions fail or isfile is unavailable
+        local uri = Window and Window._ui and Window._ui.GetAsset and Window._ui:GetAsset("popup/scrollbar_thumb.png")
+        if uri and uri ~= "rbxassetid://0" and uri ~= "" then
             ServerFrame.ScrollBarImage = uri
             ServerFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
             return true
         end
+
         return false
     end
     -- Prefetch runs asynchronously; retry briefly so the custom thumb is applied
@@ -9619,6 +9616,10 @@ pcall(function()
             ServerFrame.CanvasPosition = Vector2.new(0, maxY)
         end
     end
+
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateServerCanvas)
+    ServerFrame:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateServerCanvas)
+    task.defer(updateServerCanvas)
 
     local function normalizeEntry(item)
         if not item:IsA("GuiObject") or item.Name ~= "ServerEntry" then
