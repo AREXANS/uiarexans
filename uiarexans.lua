@@ -7190,7 +7190,7 @@ ServerFrame.ZIndex = 3
 ServerFrame.ScrollBarThickness = 3
 ServerFrame.Active = true
 ServerFrame.ScrollingDirection = Enum.ScrollingDirection.Y
-ServerFrame.ScrollBarImageColor3 = Color3.fromRGB(35, 180, 255)
+ServerFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
 ServerFrame.VerticalScrollBarInset = Enum.ScrollBarInset.None
 ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.None
 if not ServerList or not ServerList.SectionAdd then
@@ -9538,21 +9538,36 @@ pcall(function()
     ServerFrame.Selectable = true
     ServerFrame.ScrollingEnabled = true
     ServerFrame.ScrollingDirection = Enum.ScrollingDirection.Y
-    ServerFrame.ScrollBarThickness = 8
+    ServerFrame.ScrollBarThickness = 6
     ServerFrame.ScrollBarImageTransparency = 0
-    ServerFrame.ScrollBarImageColor3 = Color3.fromRGB(35, 180, 255)
+    ServerFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
     -- Use the requested Arexans thumb asset (downloaded as
     -- ArexansUI_Assets/popup_scrollbar_thumb.png).
     local function ApplyServerScrollbarAsset()
         local getAsset = getcustomasset or getsynasset
-        local thumbPath = "ArexansUI_Assets/popup_scrollbar_thumb.png"
-        if not (getAsset and isfile) then return false end
+        -- Using the explicit path requested by the user, handling potential translation if needed
+        local thumbPath = "asset/popup/scrollbar_thumb.png"
+
+        -- In ArexansUI, local assets are sometimes prefixed with FolderName ("ArexansUI_Assets")
+        -- If the raw path doesn't exist, fallback to the normalized path
+        local normalizedPath = "ArexansUI_Assets/" .. string.gsub(thumbPath, "asset/", "")
+        normalizedPath = string.gsub(normalizedPath, "/", "_")
+
+        local targetPath = thumbPath
         local exists = false
-        pcall(function() exists = isfile(thumbPath) end)
-        if not exists then return false end
-        local ok, uri = pcall(getAsset, thumbPath)
+        pcall(function() exists = isfile(targetPath) end)
+
+        if not exists then
+            targetPath = normalizedPath
+            pcall(function() exists = isfile(targetPath) end)
+        end
+
+        if not (getAsset and exists) then return false end
+
+        local ok, uri = pcall(getAsset, targetPath)
         if ok and uri then
             ServerFrame.ScrollBarImage = uri
+            ServerFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
             return true
         end
         return false
@@ -9596,11 +9611,9 @@ pcall(function()
         if not ServerFrame or not ServerFrame.Parent or not layout or not layout.Parent then
             return
         end
-        -- Include padding and a small end margin so the final row can scroll
-        -- fully above the panel border instead of resting on its lower edge.
         local contentHeight = math.ceil(layout.AbsoluteContentSize.Y)
-            + padding.PaddingTop.Offset + padding.PaddingBottom.Offset + 4
-        ServerFrame.CanvasSize = UDim2.new(0, 0, 0, math.max(contentHeight, ServerFrame.AbsoluteSize.Y))
+            + (padding and (padding.PaddingTop.Offset + padding.PaddingBottom.Offset) or 0) + 4
+        ServerFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
         local maxY = math.max(0, ServerFrame.CanvasSize.Y.Offset - ServerFrame.AbsoluteSize.Y)
         if ServerFrame.CanvasPosition.Y > maxY then
             ServerFrame.CanvasPosition = Vector2.new(0, maxY)
