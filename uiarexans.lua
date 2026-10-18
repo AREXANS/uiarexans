@@ -7179,7 +7179,7 @@ ServerList = ServerTab:AddSection("Server List", true)
 ServerFrame = Instance.new("ScrollingFrame")
 ServerFrame.Position = UDim2.new(0, 9, 0, 17)
 ServerFrame.Size = UDim2.new(1, -18, 1, -20)
-ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.None
+ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 ServerFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 ServerFrame.ClipsDescendants = true
 ServerFrame.ScrollingEnabled = true
@@ -7190,9 +7190,9 @@ ServerFrame.ZIndex = 3
 ServerFrame.ScrollBarThickness = 3
 ServerFrame.Active = true
 ServerFrame.ScrollingDirection = Enum.ScrollingDirection.Y
-ServerFrame.ScrollBarImageColor3 = Color3.fromRGB(35, 180, 255)
+ServerFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
 ServerFrame.VerticalScrollBarInset = Enum.ScrollBarInset.None
-ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.None
+ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 if not ServerList or not ServerList.SectionAdd then
     error("[AXS VD] Server List container could not be created")
 end
@@ -7350,6 +7350,15 @@ function RefreshServerList()
 game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, server.id, game.Players.LocalPlayer)
                         end)
                 end
+
+                -- Force canvas update after adding entries
+                task.spawn(function()
+                    task.wait(0.1)
+                    if ServerFrame and UIListLayoutServer then
+                        local contentHeight = math.ceil(UIListLayoutServer.AbsoluteContentSize.Y) + 12
+                        ServerFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
+                    end
+                end)
             end
         end
     end)
@@ -7416,7 +7425,7 @@ pcall(function()
         ServerFrame.ScrollingEnabled = true
         ServerFrame.Active = true
         ServerFrame.ScrollingDirection = Enum.ScrollingDirection.Y
-        ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.None
+        ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
         ServerFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     end
     if UIListLayoutServer then
@@ -7609,7 +7618,7 @@ do
             ServerFrame.ScrollingDirection = Enum.ScrollingDirection.Y
             ServerFrame.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
             ServerFrame.Active = true
-            ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.None
+            ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
             ServerFrame.VerticalScrollBarInset = Enum.ScrollBarInset.None
             ServerFrame.ScrollBarThickness = 3
             ServerFrame.ZIndex = 3
@@ -9538,23 +9547,35 @@ pcall(function()
     ServerFrame.Selectable = true
     ServerFrame.ScrollingEnabled = true
     ServerFrame.ScrollingDirection = Enum.ScrollingDirection.Y
-    ServerFrame.ScrollBarThickness = 8
+    ServerFrame.ScrollBarThickness = 6
     ServerFrame.ScrollBarImageTransparency = 0
-    ServerFrame.ScrollBarImageColor3 = Color3.fromRGB(35, 180, 255)
+    ServerFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
     -- Use the requested Arexans thumb asset (downloaded as
     -- ArexansUI_Assets/popup_scrollbar_thumb.png).
     local function ApplyServerScrollbarAsset()
         local getAsset = getcustomasset or getsynasset
-        local thumbPath = "ArexansUI_Assets/popup_scrollbar_thumb.png"
-        if not (getAsset and isfile) then return false end
+        local targetPath = "ArexansUI_Assets/popup_scrollbar_thumb.png"
+
         local exists = false
-        pcall(function() exists = isfile(thumbPath) end)
-        if not exists then return false end
-        local ok, uri = pcall(getAsset, thumbPath)
-        if ok and uri then
+        if isfile then pcall(function() exists = isfile(targetPath) end) end
+
+        if getAsset and exists then
+            local ok, uri = pcall(getAsset, targetPath)
+            if ok and uri then
+                ServerFrame.ScrollBarImage = uri
+                ServerFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
+                return true
+            end
+        end
+
+        -- Fallback to Window method if standard executor functions fail or isfile is unavailable
+        local uri = Window and Window._ui and Window._ui.GetAsset and Window._ui:GetAsset("popup/scrollbar_thumb.png")
+        if uri and uri ~= "rbxassetid://0" and uri ~= "" then
             ServerFrame.ScrollBarImage = uri
+            ServerFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
             return true
         end
+
         return false
     end
     -- Prefetch runs asynchronously; retry briefly so the custom thumb is applied
@@ -9566,7 +9587,7 @@ pcall(function()
             task.wait(0.2)
         end
     end)
-    ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.None
+    ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
     ServerFrame.CanvasPosition = Vector2.new(0, 0)
     ServerFrame.ZIndex = math.max(ServerFrame.ZIndex, 3)
 
@@ -9596,16 +9617,18 @@ pcall(function()
         if not ServerFrame or not ServerFrame.Parent or not layout or not layout.Parent then
             return
         end
-        -- Include padding and a small end margin so the final row can scroll
-        -- fully above the panel border instead of resting on its lower edge.
         local contentHeight = math.ceil(layout.AbsoluteContentSize.Y)
-            + padding.PaddingTop.Offset + padding.PaddingBottom.Offset + 4
-        ServerFrame.CanvasSize = UDim2.new(0, 0, 0, math.max(contentHeight, ServerFrame.AbsoluteSize.Y))
+            + (padding and (padding.PaddingTop.Offset + padding.PaddingBottom.Offset) or 0) + 4
+        ServerFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
         local maxY = math.max(0, ServerFrame.CanvasSize.Y.Offset - ServerFrame.AbsoluteSize.Y)
         if ServerFrame.CanvasPosition.Y > maxY then
             ServerFrame.CanvasPosition = Vector2.new(0, maxY)
         end
     end
+
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateServerCanvas)
+    ServerFrame:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateServerCanvas)
+    task.defer(updateServerCanvas)
 
     local function normalizeEntry(item)
         if not item:IsA("GuiObject") or item.Name ~= "ServerEntry" then
