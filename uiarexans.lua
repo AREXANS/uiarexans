@@ -7179,7 +7179,7 @@ ServerList = ServerTab:AddSection("Server List", true)
 ServerFrame = Instance.new("ScrollingFrame")
 ServerFrame.Position = UDim2.new(0, 9, 0, 17)
 ServerFrame.Size = UDim2.new(1, -18, 1, -20)
-ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.None
+ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 ServerFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 ServerFrame.ClipsDescendants = true
 ServerFrame.ScrollingEnabled = true
@@ -7192,7 +7192,7 @@ ServerFrame.Active = true
 ServerFrame.ScrollingDirection = Enum.ScrollingDirection.Y
 ServerFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
 ServerFrame.VerticalScrollBarInset = Enum.ScrollBarInset.None
-ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.None
+ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 if not ServerList or not ServerList.SectionAdd then
     error("[AXS VD] Server List container could not be created")
 end
@@ -7350,6 +7350,15 @@ function RefreshServerList()
 game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, server.id, game.Players.LocalPlayer)
                         end)
                 end
+
+                -- Force canvas update after adding entries
+                task.spawn(function()
+                    task.wait(0.1)
+                    if ServerFrame and UIListLayoutServer then
+                        local contentHeight = math.ceil(UIListLayoutServer.AbsoluteContentSize.Y) + 12
+                        ServerFrame.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
+                    end
+                end)
             end
         end
     end)
@@ -7416,7 +7425,7 @@ pcall(function()
         ServerFrame.ScrollingEnabled = true
         ServerFrame.Active = true
         ServerFrame.ScrollingDirection = Enum.ScrollingDirection.Y
-        ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.None
+        ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
         ServerFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     end
     if UIListLayoutServer then
@@ -7609,7 +7618,7 @@ do
             ServerFrame.ScrollingDirection = Enum.ScrollingDirection.Y
             ServerFrame.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
             ServerFrame.Active = true
-            ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.None
+            ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
             ServerFrame.VerticalScrollBarInset = Enum.ScrollBarInset.None
             ServerFrame.ScrollBarThickness = 3
             ServerFrame.ZIndex = 3
@@ -9578,7 +9587,7 @@ pcall(function()
             task.wait(0.2)
         end
     end)
-    ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.None
+    ServerFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
     ServerFrame.CanvasPosition = Vector2.new(0, 0)
     ServerFrame.ZIndex = math.max(ServerFrame.ZIndex, 3)
 
