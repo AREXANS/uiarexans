@@ -102,7 +102,7 @@ local _version = "3.0.3-spear-no-hold-gui"
 -- AREXANS UI INJECTION
 -- =========================================================
 local Lib = (function()
-    local __AXS_AREXANS_UI_SOURCE = [=[-- ==============================================================================
+    local __AXS_AREXANS_UI_SOURCE = [===[-- ==============================================================================
 -- AREXANS UI LIBRARY - ASSET ONLY / CLEAN SPLIT PANEL
 -- ==============================================================================
 local ArexansUI = {}
@@ -4602,7 +4602,7 @@ addToggle(ConfigSection, "Kunci Icon Mengambang", true)
 -- Selesai membangun UI: notifikasi mulai aktif.
 Sim.silent = false
 simNotify("Mode Simulasi", "Semua fitur hanya tampilan UI.", 4)
-]=]
+]===]
     local fn, err = loadstring(__AXS_AREXANS_UI_SOURCE)
     if not fn then
         warn("Failed to load UI library: " .. tostring(err))
